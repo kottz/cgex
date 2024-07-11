@@ -1,0 +1,39 @@
+on ea
+  scribe = new (xtra "FileIO")
+  
+  CreateFile(scribe, the moviePath & "sprite_locations.txt")
+  OpenFile(scribe, the moviePath & "sprite_locations.txt", 0)
+  --scribe.setNewLineConversion(1)
+  --sp = Sprite(80)
+  --sp_castnum = sp.member.name
+  --sp_castnum = integer(sp_castnum)
+  --castLibName = castLib(sp.member.member.castLibNum).name
+  --put castLib(sp_castnum).name
+  --put sp_castnum
+  --put castLibName
+  --location = sp.member.name & "," & castLibName & "," & string(sp.locH) & "," & string(sp.locV) & "," & string(sp.locZ) & "," & string(sp.width) & "," & string(sp.height) & return
+  --put location
+  --writeString(scribe, location)
+  --writeString(scribe, location)
+  excludes = ["", "dummy"]
+  bool = true
+  repeat while bool
+    frame_name = _movie.framelabel & return & return
+    writeString(scribe, frame_name)
+    repeat with n = 1 to 500
+      sp = Sprite(n)
+      sp_name = sp.member.name
+      if sp_name <> "" then
+        if sp_name <> "dummy" then
+          castLibName = castLib(sp.member.member.castLibNum).name
+          location = string(n) & "," & sp.member.name & "," & castLibName & "," & string(sp.locH) & "," & string(sp.locV) & "," & string(sp.locZ) & "," & string(sp.width) & "," & string(sp.height) & return
+          writeString(scribe, location)
+        end if
+      end if
+end repeat
+if _movie.frame = _movie.lastframe then bool = false
+_movie.goNext()
+_movie.pause()
+end repeat
+closeFile(scribe)
+scribe=0

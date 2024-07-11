@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>Installation</title>
+<link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+<table width="90%" border="0" cellspacing="0" cellpadding="5" align="center">
+  <tr>
+    <td height="36" colspan="3">&nbsp;</td>
+  </tr>
+  <tr>
+    <td><img src="images/logo2.gif" alt="Audio Xtra" width="36" height="36"></td>
+    <td valign="middle" align="left" class="title"><a href="index.htm">AUDIO XTRA HELP</a>: <a href="installation.htm">INSTALLATION:</a> <span class="coloraudio">WINDOWS - DIRECTOR 11 / 11.5</span></td>
+    <td width="36" rowspan="2">&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td valign="top" align="left"><p>&nbsp;</p>
+      <p class="bold">INSTALLING THE XTRA ON WINDOWS - Director 11 / 11.5</p>
+      <p>Decompress the installation .zip file. This will unpack the Xtra, documentation and sample files to a folder named &quot;Audio Xtra&quot; on your machine. To install the Xtra, just copy the file Windows\AudioXtra.x32 to the Director 11 XTRAS folder. If your copy of Director 11 is installed at the default location, the Windows Xtra file will be located at:</p>
+      <p>&nbsp;</p>
+      <p class="marginbold">C:\Program Files\Adobe\Adobe Director 11\Configuration\Xtras\AudioXtra.x32</p>
+      <p>&nbsp;</p>
+      <p>Now you need to install the files necessary for creation of cross-platform projector for Mac OSX. Go back to the <span class="margin">&quot;Audio Xtra&quot;</span> directory where the Xtra files were unpacked. Open the <strong>Mac Universal</strong> directory. Now copy the file &quot;Audio  Xtra.cpio&quot; to the &quot;Configuration\Cross Platform Resources\Macintosh\Xtras&quot; directory used by Director 11. In a default installation of Director this file will end up at the following location:</p>
+      <p>&nbsp;</p>
+      <p class="margin"><span class="marginbold">C:\Program Files\Adobe\Adobe Director 11\Configuration\Cross Platform Resources\Macintosh\Xtras\Audio Xtra.cpio</span></p>
+      <p>&nbsp;</p>      
+      <p>Finally, you need to edit the xtrainfo.txt file to include information about Audio Xtra. This information is used by the Shockwave and cross-platform publishing features in Director 11, to locate the files needed when assembling the Mac OSX version of your projector. The xtrainfo.txt file is located by default at:</p>
+      <p>&nbsp;</p>
+      <p class="margin"><span class="marginbold">C:\Program Files\Adobe\Adobe Director 11\Configuration\xtrainfo.txt</span></p>
+      <p>&nbsp;</p>
+      <p>Double click the file to open it in notepad, or alternatively edit with any other text editor. You need to add the following line to the end of the file:</p>
+      <p class="margin">&nbsp;</p>
+      <p class="marginbold"> [#namePPC:&quot;Audio Xtra&quot;, #nameW32:&quot;AudioXtra.x32&quot;, 
+        #package:&quot;http://download.tabuleiro.com/packages/Audio/61/AudioXtra&quot;] 
+      </p>
+      <p>&nbsp;</p>
+      <p>You may want to customize this line in the future, to instruct Director to download Audio Xtra Shockwave packages from the same server that hosts your Shockwave applications. This is covered in more detail at the <a href="shockwave.htm">Using the Xtra in Shockwave</a> section of the documentation.  Restart Director for the changes to take effect. <span class="margin">The Xtra should be listed when you issue the command &quot;put the xtralist&quot; in the message window. The Xtra functions will also be listed when you click the message window Scripting Xtras button.</span></p>
+      <p>&nbsp;</p>
+    </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<html>
+<head>
+<title>Getting Started</title>
+<link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+<table width="90%" border="0" cellspacing="0" cellpadding="5" align="center">
+  <tr>
+    <td height="36" colspan="3">&nbsp;</td>
+  </tr>
+  <tr>
+    <td><img src="images/logo2.gif" alt="Audio Xtra" width="36" height="36"></td>
+    <td valign="middle" align="left" class="title"><a href="index.htm">AUDIO XTRA HELP</a>: <span class="coloraudio">GETTING 
+      STARTED</span></td>
+    <td width="36" rowspan="2">&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td valign="top" align="left"><p>Audio Xtra is a Scripting Xtra. Scripting Xtras are used to extend the Lingo language with new functions and datatypes. Unlike Asset Xtras there is no visual representation of a scripting Xtra in the Director interface, and you can not create castmembers or sprites. The creation of Scripting Xtras is done in your Lingo or JavaScript syntax scripts, by using the #new Lingo keyword.</p>
+      <p class="margin">The first step is to download and install the Audio Xtra, following the instructions in the <a href="installation.htm">installation</a> page. Now that it's installed, let's verify that the installation was successful. You should see the Audio Xtra entry in the Scripting Xtras context menu, appearing at the top of the message window. Selecting the Audio Xtra submenu and the &quot;put interface&quot; entry will output a list of all commands understood by Audio Xtra in the message window. You can also use the following command</p>
+      <p>&nbsp;</p>
+      <p class="example">Lingo:</p>
+      <p class="marginbold">put the xtralist</p>
+      <p class="example">JavaScript syntax: </p>
+      <p class="marginbold">trace(_player.xtraList)</p>
+      <br>
+      <p>to verify which Xtras are installed, including the version number for each one.</p>
+      <p class="bold">&nbsp;</p>
+      <p class="bold">&nbsp;</p>      <p class="bold">THE SOUNDLIST </p>
+      <p>The soundlist is Audio Xtra's internal list of sounds that it is currently working with. The source of the sound can be a file, a cast member or a sound recorded into RAM, but the sound must be loaded into Audio Xtra's sound list before other Audio Xtra commands can work with it. There are 3 ways to add a sound to Audio Xtra's sound list: </p>
+      <p>&nbsp;</p>      <p class="margin"><span class="bold">1.</span> Record a new sound, which automatically adds it to the sound list </p>
+      <p class="margin"><span class="bold">2.</span> Load an existing sound file or sound cast member into the list using axLoadSound or axLoadSoundIntoRAM </p>
+      <p class="margin"><span class="bold">3.</span> Save a sound already in the sound list to a different format using axConvertToMember or axConvertToFile. </p>
+      <p>&nbsp;</p>
+      <p>Use axGetSoundList to determine which sounds are currently on the sound list. </p>
+      <p>&nbsp;</p>      <p>&nbsp;</p>
+      <p class="bold">THE SOUNDS DIRECTORY </p>
+      <p>Almost all commands in Shockwave require a sounds directory set by the user. The sounds directory is used as the path to record to and the path to load sounds from. You prompt the user for the path using axPromptForSoundsDirectory. </p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>      <p class="bold">RECORDING A SOUND </p>
+      <p>You can record sound to an external file, a cast member, or straight to RAM. You must perform the following steps to record:</p>
+      <p>&nbsp; </p>            
+      <p class="margin"><span class="bold">1.</span> Set a sounds directory, or 
+        if you are going to record to a file in Shockwave, set the environment 
+        property useDswMediaDirectory to TRUE.</p>
+      <p class="margin"><span class="bold">2.</span> Issue axOpenRecorder and get no error back. </p>
+      <p class="margin"><span class="bold">3.</span> Issue either axRecordSoundToFile, axRecordSoundToRAM or axRecordSoundToMember. </p>
+      <p class="margin"><span class="bold">4.</span> Issue axStopRecording to stop recording. RAM or member based recordings will stop automatically when the buffer is full.</p>
+      <p class="margin"><span class="bold">5.</span> Issue axCloseRecorder to close the recorder. </p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <p class="bold">PLAYING A SOUND </p>
+      <p>Once a sound is on the sound list you can play it using axPlay and stop it with axStop. </p>
+      <p>&nbsp;</p>
+      <p class="example">Examples:</p>
+      <p class="marginbold"> axPlay("New Sound") </p>
+      <p class="marginbold"> axStop("New Sound") </p>
+      <p>&nbsp;</p>
+      <p>The Audio Xtra sample movie available in the TUTORIALS AND SAMPLES section at our website includes a full implementation of a simple  application used to record, play and export audio files, complete with error checking and behaviors you can re-use on your files. The sample application was built to demonstrate best practices when accessing Audio Xtra functions and we strongly encourage you to re-use as much code from this sample as possible.</p></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+</body>
+</html>

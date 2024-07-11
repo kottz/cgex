@@ -1,0 +1,16 @@
+on prepareMovie
+  _player.windowList[1].minimize()
+  cl = the commandLine
+  arg = cl.word[1]
+  if arg = "" then
+    put "No argument given. Exiting..."
+    exit
+  end if
+  set the itemDelimiter = "."
+  set fileName = item 1 of arg
+  window().new(arg)
+  window(arg).fileName = arg
+  window(arg).open()
+  window(arg).movie.saveMovie(fileName & "_open.dir")
+  window(arg).close()
+end

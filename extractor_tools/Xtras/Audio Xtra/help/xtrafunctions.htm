@@ -1,0 +1,649 @@
+<html>
+<head>
+<title>Xtra Functions</title>
+<link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+<table width="90%" border="0" cellspacing="0" cellpadding="5" align="center">
+  <tr>
+    <td height="36" colspan="3">&nbsp;</td>
+  </tr>
+  <tr>
+    <td><img src="images/logo2.gif" alt="Audio Xtra" width="36" height="36"></td>
+    <td valign="middle" align="left" class="title"><a href="index.htm">AUDIO XTRA HELP</a>: <span class="coloraudio">XTRA FUNCTIONS</span></td>
+    <td width="36" rowspan="2">&nbsp;</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td align="left" valign="top"><p>The following is a list of scripting functions available after installation of Audio Xtra. </p>
+      <p>&nbsp;</p>
+      <table border="0" cellspacing="7" cellpadding="0">
+        <tr>
+          <td><a href="#axRegister">axRegister</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axRemoveSound">axRemoveSound</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axConvertToFile">axConvertToFile</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axCompressToOggBase64">axCompressToOggBase64</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axOpenRecorder">axOpenRecorder</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axDeleteSound">axDeleteSound</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axConvertToMember">axConvertToMember</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axLoadOggSoundIntoRAM">axLoadOggSoundIntoRAM</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axCloseRecorder">axCloseRecorder</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetSoundList">axGetSoundList</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axConvertToSFData">axConvertToSFData</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axLoadOggByteArrayIntoRAM">axLoadOggByteArrayIntoRAM</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axRecordSoundToFile">axRecordSoundToFile</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axSetSoundInfo">axSetSoundInfo</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axBytesToMilliseconds">axBytesToMilliseconds</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axLoadOggBase64DataIntoRAM">axLoadOggBase64DataIntoRAM</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axRecordSoundToRAM">axRecordSoundToRAM</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetSoundInfo">axGetSoundInfo</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axMillisecondsToBytes">axMillisecondsToBytes</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axRecordSoundToMember">axRecordSoundToMember</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axPlay">axPlay</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axSetForegroundColor">axSetForegroundColor</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axServiceRecording">axServiceRecording</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axStop">axStop</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axSetBackgroundColor">axSetBackgroundColor</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axStopRecording">axStopRecording</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetStatus">axGetStatus</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axPlotWaveform">axPlotWaveform</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axPauseRecording">axPauseRecording</a></td>
+		  <td>&nbsp;</td>
+          <td><a href="#axGetVersion">axGetVersion</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axAskPermission">axAskPermission</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axResumeRecording">axResumeRecording</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axSetEnvironmentInfo">axSetEnvironmentInfo</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axPromptForSoundsDirectory">axPromptForSoundsDirectory</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axGetInputLevel">axGetInputLevel</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetEnvironmentInfo">axGetEnvironmentInfo</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axCompressToOggFile">axCompressToOggFile</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axLoadSound">axLoadSound</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetFreeSpace">axGetFreeSpace</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axCompressToOggData">axCompressToOggData</a></td>
+        </tr>
+        <tr>
+          <td><a href="#axLoadSoundIntoRAM">axLoadSoundIntoRAM</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axGetEmptyMember">axGetEmptyMember</a></td>
+          <td>&nbsp;</td>
+          <td><a href="#axCompressToOggByteArray">axCompressToOggByteArray</a></td>
+        </tr>
+      </table>      
+      <p>&nbsp;</p>
+      <a name="axRegister"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axRegister([1111,2222,3333])</span> - global function, used to register Audio Xtra. It can be called at any time, usually when the Director movie starts. Unregistered versions of the Xtra are fully functional for evaluation purposes, but they will display a warning the first time an Audio Xtra function is used. Returns TRUE if registration is successful, FALSE otherwise. </p>
+    <p class="margin">Audio Xtra serial number are strings, and have the generic format AUXZZ-1111-2222-3333, where ZZ is the major Xtra version. In order to protect your serial number from being included as a string in your Director projectors or dcr movies, the axRegister function requires only the three groups of numbers 1111, 2222 and 3333 inside a Director list. Leading zeroes do not need to be entered.</p>
+    <p class="margin">An example: if your serial number is AUX50-0123-4567-0089 then you should register using the following command, usually on a startmovie handler:</p>
+	<p class="example">Lingo:</p>
+    <p class="marginbold">axRegister([123, 4567,89]) </p>
+    <p class="example">JavaScript syntax :</p>
+    <p class="marginbold">axRegister(list(123, 4567,89)) </p>
+    <p>&nbsp;</p>
+    <a name="axOpenRecorder"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axOpenRecorder(bufferSizeInteger)</span> where 
+      <span class="example">bufferSizeInteger</span> is the size in bytes of the RAM buffer to reserve when recording to RAM. Returns an error number or 0 for no error.  This command pens the sound recorder and allocates space in RAM for recording a sound to RAM or member. The bufferSize must be the maximum expected size of the recorded sound. The minimum recording buffer size for RAM recording is 10K on Windows and 20K on Mac. Passing a buffer size parameter of less than the required minimum will cause axOpenRecorder to fail and return an error. </p>
+    <p class="margin">For recording to a file, set bufferSize to 0 because a RAM buffer will not be used for recording. Setting a bufferSize other than 0 for recording to a file wastes RAM, since the memory will be allocated but never used. If you are recording to RAM or recording to a member keep in mind that after recording the sound will be copied out of the buffer to either a RAM location or a member, which means that the total memory requirement is actually twice the size of the sound. For instance if you set a buffer size of 40K and record a 40K sound into it you will need 80K of free memory to accomplish it - 40 for the buffer and 40 to store the finished sound in RAM or in a member. </p>
+    <p class="margin">The recorded sound will use the system default values for recording depth, sampling rate and number of channels, unless you have used axSetEnvironmentInfo to set other values. It is recommended to set the values for depth, rate and number of channels before the recorder is open. Settings changed while the recorder is open will be ignored unless the recorder is closed and reopened.</p>
+    <p class="example">Example:</p>
+    <p class="marginbold"> err = axOpenRecorder(102400)</p>
+    <p class="marginbold"> -- sets the recording RAM buffer to 100K</p>    <p>If axOpenRecorder returns an error, you must use axCloseRecorder, before trying to open the recorder again, or recording may not function correctly. </p>
+    <p>&nbsp;</p>
+    <a name="axCloseRecorder"></a><p>&nbsp;</p>    
+    <p><span class="coloraudio">axCloseRecorder()</span> - 
+ Closes the sound recorder and releases the sound recording driver for use by other applications. The sound recorder must be closed before you can play sound if your sound card is not full duplex.      Returns an error number or 0 for no error.</p>
+    <p class="example">Example:</p>
+    <p class="marginbold"> on mouseUp</p>
+    <p class="margin2bold">axStopRecording()</p>
+    <p class="margin2bold">axCloseRecorder()</p>
+    <p class="marginbold"> end</p>
+	<p>&nbsp;</p>
+    <a name="axRecordSoundToFile"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axRecordSoundToFile(soundNameString, filePathString)</span> where <span class="example">soundNameString</span> is the name for the sound that will be added to the sound list and <span class="example">filePathString</span> is the full file path or file name to save the recorded sound to in the sounds directory.      Returns an error number or 0 for no error. An error will be returned if recording could not begin for some reason. In Shockwave the error -8718: "This feature is not supported in Shockwave" returns if the file already exists, for security reasons. axDeleteSound can be used in this case if the file has been created in the same recording section, or you must supply a different filename. If an error happened during recording, that will be returned from the axStopRecording command.</p>
+    <p class="margin">If a full path is not given, records sound to the specified file name in the sounds directory previously set with axSetEnvironmentInfo or axPromptForSoundsDirectory ,and adds the sound to the sound list. The recorder must be open for this command to work. </p>
+    <p class="margin">If a sounds directory is set and you pass a full path to the file for filePathString, the path is appended to the sounds directory path and will probably not result in a valid recording. </p>
+    <p class="margin">Recording in Shockwave will not begin until the user responds to any permissions dialog. If you are doing timed recording, start your timer after this command rather than before. </p>
+    <p class="margin">Although you can convert recorded sounds to other formats after recording, on Win you must record initially to a WAVE file and you must specify WAV as the file extension . On Mac you must record initially to an AIF file.</p>
+    <p class="margin"><span class="bold">Note: </span>Audio Xtra handles sound <a href="file_extensions.htm">file extensions</a> differently on the Mac and PC platform. </p>
+    <p class="example">Examples:</p>
+    <p class="marginbold"> -- next line contains no path so the sounds directory is assumed</p>
+    <p class="marginbold"> err = axRecordSoundToFile ("New Sound", "TEST1.WAV")</p>
+    <p class="marginbold"> err = axRecordSoundToFile ("Another", "C:\TEMP\TEST1.WAV") </p>    
+    <p>&nbsp;</p>
+    <a name="axRecordSoundToRAM"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axRecordSoundToRAM(soundNameString)</span> where       <span class="example">soundNameString</span> is the name for the sound that will be added to the sound list. Returns an error number or 0 for no error. An error will be returned if recording could not begin for some reason. If an error happened during recording, that will be returned from the axStopRecording command. Records sound to memory and adds the sound to the sound list. The recorder must be open for this command to work. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold"> err = axRecordSoundToRAM ("New Sound") </p>
+    <p>&nbsp;</p>
+    <a name="axRecordSoundToMember"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axRecordSoundToMember(soundNameString, memberReference)</span> where <span class="example">soundNameString</span> is the name for the sound that will be added to the sound list and
+      <span class="example">memberReference</span> is the member to hold the recorded sound.      Returns an error number or 0 for no error. An error will be returned if recording could not begin for some reason. If an error happened during recording, that will be returned from the asStopRecording command. Records sound to to the specified member and adds the sound to the sound list. You can use the utility method axGetEmptyMember to find an empty cast member to receive the sound. The recorder must be open for this command to work. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold"> err = axRecordSoundToMember ("Audio 1", axGetEmptyMember() ) </p>    
+    <p>&nbsp;</p>
+    <p><a name="axServiceRecording"></a></p>
+    <p>&nbsp;</p>
+    <p><span class="coloraudio">axServiceRecording()</span> - Previous versions of Audio Xtra required this function to be called repeatedly during the recording process. In version 5.0 and later this is no longer necessary, as the Xtra will automatically service recording during idle events. However, this function is still present to provide compatibility with older content and Shockwave movies authored with previous versions. </p>
+    <p>&nbsp;</p>
+    <p><a name="axStopRecording"></a></p>
+    <p>&nbsp;</p>
+    <p><span class="coloraudio">axStopRecording()</span> - Returns an error number or 0 for no error. Stops recording and creates a sound file or new member if the sound was designated to record to a file or to a member. A new sound in the process of recording will not appear in the sound list until axStopRecording() is called. </p>
+    <p class="margin">The amount of time you can record is determined by the size of the buffer set when you open the recorder. If you exceed the size of the buffer, recording will automatically stop. If that happens, and you then issue axStopRecording, Audio Xtra will return -8809, No sound is recording. A sound will be created with the recording up to the point the buffer filled up. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold">  err = axStopRecording()</p>
+    <p>&nbsp;</p>
+    <a name="axPauseRecording"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axPauseRecording()</span> - Returns an error number or 0 for no error.  Pauses recording. Does not create a new file or member because the sound is not yet finished. Waits for a resume to continue recording. </p>
+    <p class="margin">If the RAM buffer is too full to later resume recording, this command can return a -8820 error, and what has been recorded will be saved as a sound if there is enough RAM to do so. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold">  err = axPauseRecording()</p>    
+    <p>&nbsp;</p>
+    <a name="axResumeRecording"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axResumeRecording()</span> - Returns an error number or 0 for no error.  Resumes a paused recording. </p>
+    <p class="margin">If the RAM buffer is too full to continue recording, this command can return a -8820 error, and what has been recorded will be saved as a sound if there is enough RAM to do so. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold">  err = axResumeRecording()</p>
+    <p>&nbsp;</p>
+    <a name="axGetInputLevel"></a><p>&nbsp;</p>
+    <p><span class="coloraudio">axGetInputLevel()</span> - Returns an 
+
+
+ integer between 0 and 255, or a negative error number. This command is only available on the Mac platform. Returns the current sound input volume level. The sound recorder must be open to get a level. On OSX, Director must be running to get a level. Calling the function from the Message Window while Director is stopped will always return 0. </p>
+    <p class="example">Example:</p>
+    <p class="marginbold"> axOpenRecorder(19249)</p>
+    <p class="marginbold"> level = axGetInputLevel()</p>
+    <p>&nbsp;</p>
+	<a name="axLoadSound"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axLoadSound(soundNameString, typeString, memberRefOrFilePathString)</span> where <span class="example">soundNameString</span> is the name for the sound in the sound list, <span class="example">typeString</span> is either "file" or "member" and <span class="example">memberRefOrFilePathString</span> is either a member reference or a file path string. Returns an error number or 0 for no error. </p>
+	<p class="margin">Puts a sound that exists either in the Director movie's castlib or in an external file into Audio Xtra's sound list so that it can work with the member or file. If a file is specified, using this command creates a pointer from the sound list to the file but does not actually load the file into memory. If a member is specified however, using this command loads the member in to memory. It does the equivalent of Lingo's load member command. </p>
+	<p class="margin">If a sounds directory has been set with axSetEnvironmentInfo or axPromptForSoundsDirectory specifying a file name with no file path will automatically load the specified file from the sounds directory. You cannot specify a full file path in Shockwave. You must specify only a file name, which will load the sound file of that name from the sounds directory. </p>
+	<p class="margin"><span class="bold">Note: </span>Audio Xtra handles sound <a href="file_extensions.htm">file extensions</a> differently on the Mac and Windows platform. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axLoadSound("Happy Birthday","member",member 5)</p>
+	<p class="marginbold">axLoadSound("Narration1","file","My CD:sound:narr1.aif") </p>	<p class="margin">&nbsp;</p>	<table border="0" cellspacing="7" cellpadding="0">
+      <tr>
+        <td colspan="3" align="center" class="marginbold">          Import File Formats Supported</td>
+        </tr>
+      <tr>
+        <td align="right" class="marginbold">Format </td>
+        <td>&nbsp;</td>
+        <td class="bold">Supported</td>
+      </tr>
+      <tr>
+        <td align="right"> AIFF </td>
+        <td>&nbsp;</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td align="right"> WAVE </td>
+        <td>&nbsp;</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td align="right"> AU </td>
+        <td>&nbsp;</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td align="right"> MP3 </td>
+        <td>&nbsp;</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td align="right"> SWA </td>
+        <td>&nbsp;</td>
+        <td>No</td>
+      </tr>
+    </table>
+	<p>&nbsp;</p>
+	<a name="axLoadSoundIntoRAM"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axLoadSoundIntoRAM(soundNameString, filePathString)</span> where <span class="example">soundNameString</span> is the name for the sound in the sound list and <span class="example">filePathString</span> is the file path for the sound file to be loaded. Returns an error number or 0 for no error. </p>
+	<p class="margin">Puts an existing external sound file into Audio Xtra's sound list so that it can work with the file and loads the file into memory. This command is not available for cast members because axLoadSound automatically loads them in to memory. A sound loaded in to RAM will play back smoothly. You may want to use this function for a sound that skips when playing from disk. </p>
+	<p class="margin">If a sounds directory has been set with axSetEnvironmentInfo or axPromptForSoundsDirectory specifying a file name with no file path will automatically load the specified file from the sounds directory. You cannot specify a full file path in Shockwave. You must specify only a file name, which will load the sound file of that name from the sounds directory. </p>
+	<p class="margin"><span class="bold">Note: </span>Audio Xtra handles sound <a href="file_extensions.htm">file extensions</a> differently on the Mac and Windows platform. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axLoadSoundIntoRAM("Bird Song","D:\TEMP\BIRD.WAV")</p>
+	<p class="marginbold">-- loads BIRD.WAV from the sounds directory</p>
+	<p class="marginbold">axLoadSoundIntoRAM("Bird Song","BIRD.WAV")</p>
+	<p>&nbsp;</p>
+	<a name="axRemoveSound"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axRemoveSound(soundNameString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list. Returns an error number or 0 for no error. Removes a sound from the sound list. If the sound was recorded into RAM, this command also releases the memory used by the sound. </p>	
+	<p class="example">Example:</p>
+	<p class="marginbold"> axRemoveSound("Bird Song") </p>
+	<p>&nbsp;</p>
+	<a name="axDeleteSound"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axDeleteSound(soundNameString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list. Returns an error number or 0 for no error. Removes a sound from the sound list and deletes its source media. The source member is deleted from the Director cast or the source file is deleted from the hard drive. If the sound was recorded into RAM, this command also releases the memory used by the sound. In Shockwave this command will only delete a sound file if it was recorded during the current session. </p>
+	<p class="margin"><span class="bold">Note: </span>The recorder must be closed (axCloseRecorder) or this command may return the error "-8224 file permission, device in use" and not delete the file, although the file will disappear from the sound list. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold">  err = axDeleteSound("Narration 1") </p>
+	<p>&nbsp;</p>
+	<a name="axGetSoundList"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetSoundList()</span></p>
+	<p><span class="coloraudio">axGetSoundList(#all)</span></p>
+	<p><span class="coloraudio">axGetSoundList(propertySymbol, propertySymbol...) </span>where <span class="example">propertySymbol</span> are the names of properties requested for listing. Returns an error number or a list containing the requested information for each sound on the sound list. </p>
+	<p class="margin">This command when issued with no arguments returns a list of the sound names in the sound list. When called with #all it returns the full sound list with every possible property and value listed for each sound on the list. When passed a variable number of property symbols, the listing still contains all of the sounds, but only returns the properties requested for each sound. See the <a href="sound_list.htm">Sound List Table</a> for a list of the properties that can be requested with this command.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">put axGetSoundList()</p>
+	<p class="marginbold"> -- ["Song", "Horn Fanfare"]</p>
+	<p class="marginbold">put axGetSoundList(#all)</p>
+	<p class="marginbold"> -- ["Song": [#name: "Song", #source: "file", #format: "WAVE", #start: 3991, #end: 0, #totalLength: 3998, #length: 3998, #position: 0, #depth: 8, #rate: 11127, #numChannels: 1, #volume: 255, #channel: 0, #preLoad: 1, #interleaveSeeking: 1], "Horn Fanfare": [#name: "Horn Fanfare", #source: "file", #format: "AIFF", #start: 4118, #end: 0, #totalLength: 4129, #length: 4129, #position: 0, #depth: 8, #rate: 11128, #numChannels: 1, #volume: 255, #channel: 0, #preLoad: 1, #interleaveSeeking: 1]]</p>
+	<p class="marginbold"> put axGetSoundList(#source,#format)</p>
+	<p class="marginbold">-- ["Song": [#source: "file", #format: "WAVE"], "Horn Fanfare": [#source: "file", #format: "AIFF"]] </p>
+	<p>&nbsp;</p>
+	<a name="axSetSoundInfo"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axSetSoundInfo(soundNameString, propertyString, propertyValue)</span> where      <span class="example">soundNameString</span> is the name of a sound present in the sound list, <span class="example">propertyString</span> is the name of the property to set and <span class="example">propertyValue</span> is the new value for the property. Returns an error number or 0 for no error. Replaces an existing sound property value with the new value. See the <a href="sound_list.htm">Sound List Table</a> for a list of the available properties and the subset that can be changed with this command. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axSetSoundInfo("Song","volume",125) </p>
+	<p>&nbsp;</p>
+	<a name="axGetSoundInfo"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetSoundInfo(soundNameString, propertyString)</span>      where <span class="example">soundNameString</span> is the name of a sound present in the sound list and <span class="example">propertyString</span> is the name of the property to read. Returns the property value requested or a negative error number. Reads the requested property for the sound specified. See the <a href="sound_list.htm">Sound List Table</a> for a list of the available properties. Since the sound list is formatted as a Lingo property list you can also read it directly using Lingo property list commands on the list returned from axGetSoundList() </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> put axGetSoundInfo("Song","format")</p>
+	<p class="marginbold"> -- "WAVE" </p>
+	<p>&nbsp;</p>
+	<a name="axPlay"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axPlay(soundNameString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list. Returns an error number or 0 for no error. Plays the specified sound, which must be present in the sound list. On Windows, if the sound card is not full duplex you must use axCloseRecorder first or the sound will not play, or play with distortion.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">  err = axPlay("Song") </p>
+	<p>&nbsp;</p>
+	<a name="axStop"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axStop(soundNameString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list. Returns an error number or 0 for no error. Stops playing the specified sound. Resets the position to 0. </p>	
+	<p class="example">Example:</p>
+	<p class="marginbold">  err = axStop("Song") </p>
+	<p>&nbsp;</p>
+	<a name="axGetStatus"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetStatus(soundNameString )</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list. Returns a string describing the playback status of the sound or an error number if an error occurred. Returns the current playback status of a sound in the sound list.</p>
+	<p class="margin">The possible return values from a GetStatus call are:</p>
+	<p class="margin"><span class="bold">"stopped" -</span> Not playing</p>
+	<p class="margin"><span class="bold">"playing" -</span> Playing</p>
+	<p class="margin"><span class="bold">"recording" -</span> Recording</p>
+	<p class="margin"><span class="bold">"record paused" -</span> Paused while recording</p>
+	<p class="margin"><span class="bold">"invalid" -</span> Bad sound name argument passed</p>
+	<p class="margin"><span class="bold">"error" -</span> Not enough memory to complete the command - very unlikely</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> status = axGetStatus("Narration")</p>
+	<p class="marginbold">put status</p>
+	<p class="marginbold"> -- "stopped" </p>
+	<p>&nbsp;</p>
+	<a name="axGetVersion"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetVersion()</span> - Returns a string containing version number of Audio Xtra.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> put axGetVersion()</p>
+	<p class="marginbold"> -- "6.0" </p>
+	<p>&nbsp;</p>
+	<a name="axSetEnvironmentInfo"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axSetEnvironmentInfo(infoTypeString, newValue)</span> where <span class="example">infoTypeString</span> is the name of the environment property to set and <span class="example">newValue</span> is the new value for the property. Returns an error number or 0 for no error. Sets a property that applies to Audio Xtra's recording and playback environment as a whole, rather than to a particular sound. The <a href="environ_properties.htm">Environment Properties Table</a> lists the available properties. Note that some properties only apply to one platform and some cannot be set.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">  sysTemp = axGetEnvironmentInfo("tempPath")</p>
+	<p class="marginbold">axSetEnvironmentInfo ("soundsDirectory", sysTemp )</p>
+	<p>&nbsp;</p>
+	<a name="axGetEnvironmentInfo"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetEnvironmentInfo(infoTypeString)</span> where <span class="example">infoTypeString</span> is the name of the environment property to read. Returns a value for the specified property or a negative error number. Reads the value for a property that applies to Audio Xtra's recording and playback environment as a whole, rather than to a particular sound. The <a href="environ_properties.htm">Environment Properties Table</a> lists the available properties. Some properties only apply to one platform.</p>
+<p class="example">Example:</p>
+	<p class="marginbold">put axGetEnvironmentInfo("availableSoundFormats")</p>
+	<p class="marginbold">-- "AIFF</p>
+	<p class="marginbold">WAV"</p>
+	<p>&nbsp;</p>
+	<a name="axGetFreeSpace"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetFreeSpace()</span></p>
+	<p><span class="coloraudio">axGetFreeSpace(driveNameString)</span> where <span class="example">driveNameString</span> is the drive letter on Windows or the name of the volume on Mac. Returns a positive number representing number of free K (1024 bytes per K) or a negative error number. Returns the free space on the disk to help in estimating recording time available. Use axBytesToMilliseconds to calculate recording time available based on space. If no argument is passed and the sounds directory has already been specified, it returns the free space on the drive containing the sounds directory.</p>
+	<p class="margin">In Shockwave, you can only use this command with no arguments to get the space for the drive containing the sounds directory. Passing an arbitrary drive will return an error in those environments.</p>
+	<p class="margin"><span class="bold">Note:</span> If you make repeated calls to the function in a loop you may get a -8234 error return. The system calculates the free space in real time and it may take as long as a second for the system to clean up after the call. Make repeated calls to this function no more frequently than one second apart for best results.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">  freeRecordingK = axGetFreeSpace("Macintosh HD")</p>
+	<p class="marginbold"> recordingSeconds = axBytesToMilliseconds(freeRecordingK * 1024) / 1000 </p>
+	<p>&nbsp;</p>
+	<a name="axGetEmptyMember"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axGetEmptyMember()</span></p>	
+	<p><span class="coloraudio">axGetEmptyMember(castlibNumInteger)</span> where <span class="example">castlibNumInteger</span> is an optional cast library number. Returns a full member reference for the empty member slot. Returns a member reference for the first empty cast member. If no castlib is specified, the internal castlib (1) is used. If a castlib number is specified, that castlib is used. Use this function to easily locate an empty member slot to pass to axRecordSoundToMember.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">put axGetEmptyMember()</p>
+	<p class="marginbold">-- (member 55 of castLib 1)</p>
+	<p class="marginbold">put axGetEmptyMember(2)</p>
+	<p class="marginbold">-- (member 4 of castLib 2)</p>
+	<p class="marginbold"> err = axRecordSoundToMember( "new sound",axGetEmptyMember() )</p>
+	<p>&nbsp;</p>
+	<a name="axConvertToFile"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axConvertToFile(soundNameString, filePathString, formatString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list, <span class="example">filePathString</span> is the file name or full file path to save new file to and <span class="example">formatString</span> is one of the supported file formats for export. Returns an error number or 0 for no error. Saves an existing sound in the sound list to a file on the hard drive. The environment properties <span class="example">convertSampleRate</span>, <span class="example">convertSampleDepth</span> and <span class="example">convertNumChannels</span> determine the properties of the converted file, and should be set using axSetEnvironmentInfo before this command is executed. Does not add the sound to the sound list. Use axLoadSound to add the new sound to the sound list.</p>
+	<p class="margin">The available save formats to choose from for the new sound depend on the Xtras loaded, since some of Director's MIX Xtras are used to save the file. See the Getting Started section for a list of all of the possible Xtras to include. axGetEnvironmentInfo("availableSoundFormats") will return the current formats provided by loaded Xtras. Additionally, there are some limitations, as shown in the Export File Formats Supported table below.</p>
+	<p>&nbsp; </p>
+	<table border="0" cellpadding="0" cellspacing="8">
+      <tr align="center">
+        <td colspan="5" class="bold">Export File Formats Supported</td>
+      </tr>
+      <tr class="bold">
+        <td>Format</td>
+        <td>String</td>
+        <td>Director 8.5, Director 11</td>
+        <td>Director MX, MX 2004 </td>
+        <td>Extension </td>
+      </tr>
+      <tr>
+        <td>AIFF </td>
+        <td>"AIFF"</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>.AIF</td>
+      </tr>
+      <tr>
+        <td>WAVE </td>
+        <td>"WAVE"</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>.WAV</td>
+      </tr>
+      <tr>
+        <td>Sun AU</td>
+        <td>"AU"</td>
+        <td>Yes, source file must be 8 bit depth</td>
+        <td>Yes, source file must be 8 bit depth</td>
+        <td>.AU</td>
+      </tr>
+      <tr>
+        <td>MPEG 3 </td>
+        <td>"MPEG3"</td>
+        <td>No</td>
+        <td>with significant restrictions  *</td>
+        <td>.MP3</td>
+      </tr>
+      <tr>
+        <td>Shockwave Audio</td>
+        <td>"SWA"</td>
+        <td>No</td>
+        <td>with significant restrictions *</td>
+        <td>.SWA</td>
+      </tr>
+      <tr>
+        <td colspan="5"><p><br>
+          * Please consult technote <A href="http://xtras.tabuleiro.com/support/technotes/audio/au004.htm">AU004</A> at the support area on our site for more information about restrictions in MP3 exporting from Audio Xtra.</p>          </td>
+      </tr>
+    </table>
+	<p>&nbsp;</p>
+	<p>If a sounds directory has been set with axSetEnvironmentInfo or axPromptForSoundsDirectory specifying just a filename with no path for filePathString will automatically create the specified file in the sounds directory. You cannot specify a full file path in Shockwave. You must specify only a file name, which will create the specified file in the sounds directory. </p>
+	<p class="margin">The filename, whether it is at the end of a path or by itself, must include a file extension that matches the specified file type on the PC. Refer to the File Format table above for the correct extension.</p>
+	<p class="margin"><span class="bold">Note: </span>Audio Xtra handles sound <a href="file_extensions.htm">file extensions</a> differently on the Mac and PC platform. </p>	<p>&nbsp;</p>
+	<p class="bold">Limitations</p>
+	<p>When converting to AU files you must use settings of convertSampleRate = 8000, convertSampleDepth = 0, convertNumChannels = 0. The sound you are converting from must have an 8-bit sample depth. Any other settings will produce corrupted files. This problem lies in the Sun AU Import Export Xtra (version 8.0). </p>
+	<p class="example">Example:</p>	<p class="marginbold"> -- Saves existing sound "Recorded" in sound list to</p>
+	<p class="marginbold"> -- the file "PRACTICE.WAV"</p>
+	<p class="marginbold"> axConvertToFile ( "Recorded", "C:\MYDIR\PRACTICE.WAV", "WAVE")</p>
+	<p class="marginbold"> -- Saves existing sound "BirdSong" in sound list to</p>
+	<p class="marginbold"> -- the file "BIRD.AU" in the sounds directory.</p>
+	<p class="marginbold"> axConvertToFile ( "BirdSong", "BIRD.AU", "AU") </p>
+	<p>&nbsp;</p>
+	<a name="axConvertToMember"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axConvertToMember(soundNameString, newMemberNameString, newMemberReference)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list, <span class="example">newMemberNameString</span> is the name to use for the new cast member  and <span class="example">newMemberReference</span> is the member to put new sound into. The environment properties <span class="example">convertSampleRate</span>, <span class="example">convertSampleDepth</span> and <span class="example">convertNumChannels</span> determine the properties of the converted file, and should be set using axSetEnvironmentInfo before this command is executed. Returns an error number or 0 for no error. Saves an existing sound in the sound list to an internal Director cast member. Does not add the sound to the sound list. Use axLoadSound or axLoadSoundIntoRAM to put the new sound onto the sound list. The format of the saved sound is Director's native internal sound format.</p>
+	<p>&nbsp;</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> err = axConvertToMember("BirdSong","NewSong", axGetEmptyMember())</p>
+	<p>&nbsp;</p>
+	<a name="axConvertToSFData"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axConvertToSFData(soundNameString, filePathString, formatString)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list, <span class="example">filePathString</span> is the temporary file name created during the conversion and <span class="example">formatString</span> is one of the supported file formats for export (see axConvertToFile for limitations.) Returns a property list compatible with ShockFiler's support for sending vList binary data files. The environment properties <span class="example">convertSampleRate</span>, <span class="example">convertSampleDepth</span> and <span class="example">convertNumChannels</span> determine the properties of the converted file, and should be set using axSetEnvironmentInfo before this command is executed. This function was introduced in Audio Xtra 6, and provides an easier way for reducing the sample rate and size and preparing sound files to be uploaded with ShockFiler.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">  axSetEnvironmentInfo("useTempDirectory", 1)  </p>
+	<p class="marginbold">axSetEnvironmentInfo("convertSampleRate", 11025)	  </p>
+	<p class="marginbold">axSetEnvironmentInfo("convertSampleDepth", 8)	  </p>
+	<p class="marginbold">axSetEnvironmentInfo("convertNumChannels", 1)	  </p>
+	<p class="marginbold">&nbsp;</p>
+	<p class="marginbold">dataToSend = axConvertToSFData("recordedSound","tempfile.wav","WAVE")	  </p>
+	<p class="marginbold">&nbsp;</p>
+	<p class="marginbold">remoteFileName = "recordedsound.wav"	  </p>
+	<p class="marginbold">remoteFileType = #bina	  </p>
+	<p class="marginbold">remotefileProperties = []	  </p>
+	<p class="marginbold">doappend = 0	  </p>
+	<p class="marginbold">showDialog = 1	  </p>
+	<p class="marginbold">dialogTitle = "Sending sound file ..."	  </p>
+	<p class="marginbold">&nbsp;</p>
+	<p class="marginbold">error = sf_Send (&quot;host&quot;, &quot;directory&quot;, &quot;usersname&quot;, &quot;password&quot; ,dataToSend, &quot;, remoteFileName, remoteFileType, remotefileProperties, doappend, showDialog,dialogTitle)</p>
+	<p>&nbsp;</p>
+    <a name="axBytesToMilliseconds"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axBytesToMilliseconds(numBytesInteger)</span></p>
+<p><span class="coloraudio">axBytesToMilliseconds(numBytesInteger, samplerateInteger, sampledepthInteger, numchannelsInteger)</span> where <span class="example">numBytesInteger</span> is the number of bytes and cannot exceed Lingo's the maxinteger, <span class="example">samplerateInteger</span> is the sample rate to calculate, <span class="example">sampledepthIntegeris</span> the sample depth to calculate and <span class="example">numchannelsInteger</span> is the number of channels to calculate. Returns a positive number of milliseconds or a negative error number.Will not return a value higher than Lingo's the maxinteger. Converts a number of bytes to a sound duration in milliseconds.</p>
+<p class="margin">If only one parameter is passed, Uses the current values set for recordSampleRate, recordSampleDepth and recordNumChannels as returned from axGetEnvironmentInfo to determine the disk space.  If samplerate, depth and channels are passed, the calculation is done using those values and the recorder does not have to be open.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> freeRecordingK = axGetFreeSpace("Macintosh HD")</p>
+	<p class="marginbold">  recordingSeconds = axBytesToMilliseconds(freeRecordingK * 1024) / 1000</p>
+	<p>&nbsp;</p>
+	<a name="axMillisecondsToBytes"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axMillisecondsToBytes(numMillsecsInteger)</span></p>
+	<p><span class="coloraudio"> axMillisecondsToBytes(numMillsecsInteger, samplerateInteger, sampledepthInteger, numchannelsInteger)</span> where <span class="example">numMillsecsInteger</span> is the number of milliseconds and cannot exceed Lingo's the maxinteger, <span class="example">samplerateInteger</span> is the sample rate to calculate, <span class="example">sampledepthInteger</span> is the sample depth to calculate and <span class="example">numchannelsInteger</span> is the number of channels to calculate. Returns a positive number of bytes or a negative error number. Will not return a value higher than Lingo's the maxinteger. Converts a number of milliseconds of sound duration to an amount of disk space in bytes.</p>
+	<p class="margin">If only one parameter is passed, Uses the current values set for recordSampleRate, recordSampleDepth and recordNumChannels as returned from axGetEnvironmentInfo to determine the disk space.  If samplerate, depth and channels are passed, the calculation is done using those values and the recorder does not have to be open.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> diskSpace = axMillisecondsToBytes (9098777, 22050, 8, 2)</p>
+	<p>&nbsp;</p>
+	<a name="axSetForegroundColor"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axSetForegroundColor(redInteger, greenInteger, blueInteger)</span> where <span class="example">redInteger</span> is the value for RGB red between 0 and 255, <span class="example">greenInteger</span> is the value for RGB green between 0 and 255 and <span class="example">blueInteger</span> is the value for RGB blue between 0 and 255. Returns an error number or 0 for no error. Sets the foreground color for the plotted waveform graphic. The default is white.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">axSetForegroundColor(0,255,0)</p>
+	<p>&nbsp;</p>
+	<a name="axSetBackgroundColor"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axSetBackgroundColor(redInteger, greenInteger, blueInteger)</span> where <span class="example">redInteger</span> is the value for RGB red between 0 and 255, <span class="example">greenInteger</span> is the value for RGB green between 0 and 255 and <span class="example">blueInteger</span> is the value for RGB blue between 0 and 255. Returns an error number or 0 for no error. Sets the background color for the plotted waveform graphic. The default is black.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">axSetBackgroundColor(125,0,255)</p>
+	<p>&nbsp;</p>
+	<a name="axPlotWaveform"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axPlotWaveform(soundNameString, displayMemberRef, widthInteger, heightInteger, resolutionSymbol, channelToPlotInteger)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list; <span class="example">displayMemberRef</span> is the member slot to create plot image and this can be an existing graphic member or an empty member; <span class="example">widthInteger</span> is the width in pixels of plot image, timeBase param will override this; <span class="example">heightInteger</span> is the height in pixels of plot image; <span class="example">resolutionSymbol</span> is #low: 10-20 dots per X, #medium 30-50 dots per X, #high - 80-100 dots, #maximum - all dots; and <span class="example">channelToPlot</span> is the number of the channel to plot. Returns an error number or 0 for no error.</p>
+    <p class="margin">Creates a plot graphic of the selected sound in the sound list and puts it into a bitmap cast member. The cast member specified can either be an existing bitmap cast member or an empty member slot. Audio Xtra cannot plot compressed sounds. Allocates memory the size of the environment variable plot buffer to perform the plot, and releases the memory after the plot. An out of memory error returned from this call means that a plot buffer of the specified size could not be allocated.</p>
+<p class="margin"><span class="bold">Note:</span> very small sound files plotted over large-width plots may be not plottable at lower resolutions and will return an error. Try plotting at a higher resolution. This is a math limitation. Audio Xtra cannot create a plot image where there are more pixels horizontally than sound samples to plot.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold">axPlotWaveForm("BirdSong",member "plotImage",300,50,#medium,1)</p>
+	<p class="marginbold">-- Creates a plot bitmap in cast member "plotImage"</p>
+	<p class="marginbold">-- that is 300 pixels wide and 50 pixels high, at medium resolution.</p>
+	<p>&nbsp;</p>
+	<a name="axAskPermission"></a>
+	<p>&nbsp;</p>
+	<p><span class="coloraudio">axAskPermission(actionString, actionString ...)</span> where <span class="example">actionString</span> is the variable number of actions that user should be prompted for permission for. Returns 1 if the user granted permission, 0 if not, or a negative error number. Obtains permission from the user to perform a potentially unsafe action when the movie is running in Shockwave. You can pass one argument or multiple arguments to let the user grant multiple permissions at once. The following table shows the list of possible action strings and the corresponding Audio commands they ask permission for.</p>
+    <p>&nbsp;</p>
+    <table border="0" cellpadding="0" cellspacing="8">
+      <tr>
+        <td colspan="2" class="bold">Audio Xtra commands requiring permission</td>
+      </tr>
+      <tr class="bold">
+        <td align="right">actionString</td>
+        <td>Audio Xtra Function</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">inputLevels</td>
+        <td>axGetInputLevel</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">loadFiles</td>
+        <td>axLoadSound (if the source sound is a file), axLoadSoundIntoRAM, axConvertToMember (if the source sound is a file)</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">deleteFiles</td>
+        <td>axDeleteSound (if the source sound is a file)</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">recordFiles </td>
+        <td>axRecordToFile </td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">recordMembers </td>
+        <td>axRecordToMember</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">freeSpace </td>
+        <td>axGetFreeSpace</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">plotWaveforms </td>
+        <td>axPlotWaveform</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">saveToFiles</td>
+        <td>axConvertToFile</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">saveToMembers</td>
+        <td>axConvertToMember (if the source sound is in RAM)</td>
+      </tr>
+      <tr>
+        <td align="right" class="coloraudio">convertFiles</td>
+        <td>axConvertToFile (if the source sound is a file)</td>
+      </tr>
+    </table>
+<p>&nbsp;</p>
+<p>The dialog put up by this command obtains permission for the requested function(s) for the duration of the session. See the Shockwave security section for an overview of working with Audio Xtra in that environment. To use this command in authoring for testing, you must set the environment property "simulateShockwave" to TRUE using axSetEnvironmentInfo.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> userResponse = axAskPermission("deleteFiles","recordFiles")</p>
+	<p>&nbsp;</p>
+	<a name="axPromptForSoundsDirectory"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axPromptForSoundsDirectory()</span> - Returns 1 if the user selected a directory, 0 if the user cancelled the dialog, or a negative error number. Displays a folder selection dialog to allow the user to pick a sounds directory. If the user chooses a directory the environment property "soundsDirectory" will contain the path to the directory and "soundsDirectoryIsSet" will be TRUE. Use axGetEnvironmentInfo to query these properties.</p>
+	<p class="margin">Once a sounds directory is set, you need only specify a file name as the argument for any command that usually requires a sound path. Audio Xtra will look for the sound in the specified sound directory. In authoring, use of a sounds directory is optional. In Shockwave, you must prompt the user for a soundsDirectory before working with any sound on disk.</p>
+	<p class="margin">In authoring or projectors you can set the "soundsDirectory" environment property directly with axSetEnvironmentInfo. In Shockwave you must prompt the user to set the property, and once the directory is set you can not read the path with axGetEnvironmentInfo, although Audio Xtra can use it to read and write files. See the Shockwave security section for an overview of working with Audio Xtra in that environment.</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> userResponse = axPromptForSoundsDirectory()</p>
+	<p>&nbsp;</p>
+	<a name="axCompressToOggFile"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axCompressToOggFile(soundNameString, filePathString, soundQuality)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list, <span class="example">filePathString</span> is the file name to save the new file and <span class="example">soundQuality</span> is a number from 1 to 10 that specifies the compression quality target used by the Ogg Vorbis encoder. Returns an error number or 0 for no error. The last  parameters is optional, and if it is  not included the encoder will use quality level 4, which equates roughly to 128Mb/s VBR compression. This funcion saves an existing sound in the sound list to a compressed file on the hard drive. The compressed sounds has the same sample rate and number of channels as the original sound, and 16 bit as the sample size. Does not add the sound to the sound list. Use axLoadOggSoundIntoRAM to add the new sound to the sound list. This function was introduced in AudioXtra 6.1.</p>
+	<p>&nbsp;</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis encoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting the compression. </p>
+	<p class="example">Example:</p>	
+	<p class="marginbold"> -- Compresses existing sound "Recorded" in sound list to</p>
+	<p class="marginbold"> -- the file "PRACTICE.OGG" using default settings</p>
+	<p class="marginbold">axPromptForSoundsDirectory()</p>
+	<p class="marginbold"> axCompressToOggFile ( "Recorded", "PRACTICE.OGG")</p>
+	<p class="marginbold"> -- Forces conversion to maximum compression</p>
+	<p class="marginbold"> axCompressToOggFile ( "Recorded", "PRACTICE.OGG",  1) </p>
+	<p class="marginbold">-- Forces conversion to maximum quality</p>
+	<p class="marginbold"> axCompressToOggFile ( "Recorded", "PRACTICE.OGG",  10) </p>
+	<p>&nbsp;</p>
+	<a name="axCompressToOggData"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axCompressToOggData(soundNameString, soundQuality)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list and <span class="example">soundQuality</span> is a number from 1 to 10 that specifies the compression quality target used by the Ogg Vorbis encoder. Returns a property list compatible with ShockFiler's support for sending vList binary data files. The last parameter is optional, and if it is not included the encoder will produce use quality level 4, which equates roughly to 128Mb/s VBR compression. The compressed sounds will have the same sample rate and number of channels as the original sound. This function was introduced in Audio Xtra 6.1, and provides an optimal way for greatly reducing the size and preparing sound files to be uploaded with ShockFiler.</p>
+	<p>&nbsp;</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis encoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting the compression. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axSetEnvironmentInfo("useTempDirectory", 1) </p>
+	<p class="marginbold">-- Forces conversion to maximum compression</p>
+	<p class="marginbold">dataToSend = axCompressToOggData ("Recorded", 1) </p>
+	<p class="marginbold">remoteFileName = "recordedsound.wav" </p>
+	<p class="marginbold">remoteFileType = #bina </p>
+	<p class="marginbold">remotefileProperties = [] </p>
+	<p class="marginbold">doappend = 0 </p>
+	<p class="marginbold">showDialog = 1 </p>
+	<p class="marginbold">dialogTitle = "Sending sound file ..." </p>
+	<p class="marginbold">&nbsp;</p>
+	<p class="marginbold">error = sf_Send (&quot;host&quot;, &quot;directory&quot;, &quot;usersname&quot;, &quot;password&quot; ,dataToSend, &quot;, remoteFileName, remoteFileType, remotefileProperties, doappend, showDialog,dialogTitle)</p>
+	<p>&nbsp;</p>
+    <a name="axCompressToOggByteArray" id="axCompressToOggByteArray"></a>
+    <p>&nbsp;</p>
+	<p><span class="coloraudio">axCompressToOggByteArray(soundNameString, soundQuality)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list and <span class="example">soundQuality</span> is a number from 1 to 10 that specifies the compression quality target used by the Ogg Vorbis encoder. Returns a ByteArray object containing the binary data for the compressed file, which can be used with postNetByteArray to upload the recording to an online server. The last parameter is optional, and if it is not included the encoder will produce use quality level 4, which equates roughly to 128Mb/s VBR compression. The compressed sounds will have the same sample rate and number of channels as the original sound. This function was introduced in Audio Xtra 6.2, and requires Director 11.5, as ByteArray objects are not available in previous versions of Director. Users of Director 11 or earlier can use axCompressToOggBase64.</p>
+	<p>&nbsp;</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis encoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting the compression. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axSetEnvironmentInfo("useTempDirectory", 1) </p>
+	<p class="marginbold">dataToSend = axCompressToOggByteArray ("Recorded", 1)</p>
+	<p class="marginbold">put dataToSend</p>
+	<p class="marginbold">-- &lt;ByteArrayObject length = 47655 ByteArray = 0x4f, 0x67, 0x67, 0x53, 0x0, </p>
+	<p class="marginbold">0x2, 0x0, 0x0, 0x0, 0x0&gt;</p>
+	<p>&nbsp;</p>
+    <a name="axCompressToOggBase64" id="axCompressToOggBase64"></a>
+    <p>&nbsp;</p>
+	<p><span class="coloraudio">axCompressToOggBase64(soundNameString, soundQuality)</span> where <span class="example">soundNameString</span> is the name of a sound present in the sound list and <span class="example">soundQuality</span> is a number from 1 to 10 that specifies the compression quality target used by the Ogg Vorbis encoder. Returns a property list containing two properties: #data contains the compressed file encoded as a Bsae64 string, and #length indicates the size of the string. The data portion can be used with postNetText to upload content to an online server, and the property list is formatted in a way that is compatible with both vList and ShockFiler as well.  The last parameter is optional, and if it is not included the encoder will produce use quality level 4, which equates roughly to 128Mb/s VBR compression. The compressed sounds will have the same sample rate and number of channels as the original sound. This function was introduced in Audio Xtra 6.2.</p>
+	<p>&nbsp;</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis encoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting the compression. </p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axSetEnvironmentInfo("useTempDirectory", 1) </p>
+	<p class="marginbold">dataToSend = axCompressToOggBase64 ("Recorded", 1)</p>
+	<p class="marginbold">pNetID = postNetText(&quot;http://myserver.com/page.cgi&quot; , \</p>
+	<p class="marginbold">[ &quot;Filename&quot;: &quot;myfile.ogg&quot;, &quot;Base64Data&quot;: dataToSend.data])&quot;</p>
+	<p>&nbsp;</p>
+	<a name="axLoadOggSoundIntoRAM"></a><p>&nbsp;</p>
+	<p><span class="coloraudio">axLoadOggSoundIntoRAM(soundNameString, fileNameString)</span> where <span class="example">soundNameString</span> is the name for the sound in the sound list and <span class="example">fileNameString</span> is the file name for the external compressed Ogg Vorbis sound file to be loaded. Returns an error number or 0 for no error. </p>
+	<p class="margin">This function converts an external Ogg Vorbis file into WAVE format, and puts it into Audio Xtra's sound list so that it can work with the file, which is automatically loaded into memory. A sound loaded in to RAM will play back smoothly.</p>
+	<p class="margin">This function was introduced in AudioXtra 6.1.</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis decoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting to load a file. </p>
+	<p class="margin">&nbsp;</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axPromptForSoundsDirectory()</p>
+	<p class="marginbold">-- loads BIRD.OGG from the sounds directory</p>
+	<p class="marginbold">axLoadOggSoundIntoRAM("Bird Song","BIRD.OGG")</p>
+    <p>&nbsp;</p>
+	<a name="axLoadOggByteArrayIntoRAM" id="axLoadOggByteArrayIntoRAM"></a>
+	<p>&nbsp;</p>
+	<p><span class="coloraudio">axLoadOggByteArrayIntoRAM(soundNameString, ByteArrayObject)</span> where <span class="example">soundNameString</span> is the name for the sound in the sound list and <span class="example">byteArrayObject</span> is a Director 11.5 ByteArray object containing the binary Ogg data to be loaded. Returns an error number or 0 for no error. </p>
+	<p class="margin">This function converts Ogg Vorbis data stored in a ByteArray into WAVE format, and puts it into Audio Xtra's sound list so that it can work with the file, which is automatically loaded into memory. A sound loaded in to RAM will play back smoothly.</p>
+	<p class="margin">This function was introduced in AudioXtra 6.2, and requires Director 11.5, as ByteArray objects are not available in previous versions of Director. It can be used with axCompressOggToByteArray to transfer compressed sounds to and from an online server using postNetByteArray and getNetByteArray operations.</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis decoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting to load a file. </p>
+	<p class="margin">&nbsp;</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axPromptForSoundsDirectory()</p>
+	<p class="marginbold">axLoadOggByteArrayIntoRAM("Bird Song", myByteArray)</p>
+    <p>&nbsp;</p>
+	<a name="axLoadOggBase64DataIntoRAM" id="axLoadOggBase64DataIntoRAM"></a>
+	<p>&nbsp;</p>
+	<p><span class="coloraudio">axLoadOggBase64DataIntoRAM(soundNameString, base64string)</span> where <span class="example">soundNameString</span> is the name for the sound in the sound list and <span class="example">base64string</span> is a Lingo string containing an Ogg Vorbis sound file with Base64 encoding. Returns an error number or 0 for no error. </p>
+	<p class="margin">This function converts Ogg Vorbis data encoded as a Base64 string  into WAVE format, and puts it into Audio Xtra's sound list so that it can work with the file, which is automatically loaded into memory. A sound loaded in to RAM will play back smoothly.</p>
+	<p class="margin">This function was introduced in AudioXtra 6.2, and can be used with axCompressOggToBase64 to transfer compressed sounds to and from an online server using postNetText and getNetText operations.</p>
+	<p class="bold">Limitations</p>
+	<p>The Vorbis decoder needs to create temporary files in the soundsDirectory, so make sure you set it using either axSetEnvironmentInfo or axPromptForSoundsDirectory before attempting to load a file. </p>
+	<p class="margin">&nbsp;</p>
+	<p class="example">Example:</p>
+	<p class="marginbold"> axPromptForSoundsDirectory()</p>
+	<p class="marginbold">axLoadOggBase64DataIntoRAM("Bird Song", myBase64string)</p>
+    </td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td align="left" valign="top">&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+</body>
+</html>

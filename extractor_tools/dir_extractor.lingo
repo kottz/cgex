@@ -1,0 +1,59 @@
+on prepareMovie
+  _player.windowList[1].minimize()
+  cl = the commandLine
+  arg = cl.word[1]
+  put arg
+  if arg = "" then
+    put "No argument given. Exiting..."
+    exit
+  end if
+  set the itemDelimiter = "."
+  set fileName = item 1 of arg
+  window().new(arg)
+  window(arg).fileName = arg
+  window(arg).open()
+  window(arg).minimize()
+  set mov = window(arg).movie
+  mov.axRegister([5021, 0129,4035]) --from their website, given away for free
+  sx = mov.xtra("SharpExport").new()
+  if objectP(sx) = 0 then
+    alert "SharpExport initialization failed"
+    exit
+  end if
+  repeat with n = 1 to mov.castLib.count
+    nMembers = mov.castLib(n).member.count
+    cFolderName = mov.castLib(n).name
+    --put "folder name: " & cFolderName
+    repeat with m = 1 to nMembers
+      tMember = mov.member(m, n)
+      if tMember.type = #bitmap then
+        tName = tMember.name
+        --put tName
+        OK = sx.exportBMP(tMember, item 1 of mov.name & "--" & cFolderName & "__" & tName & "-" & string(m) & ".bmp")
+        --if OK <> 0 then put "Export msg code:", OK, n, m
+      end if
+    end repeat
+  end repeat
+  put "Exported images"
+  set savePath = "output"
+  repeat with n = 1 to mov.castLib.count
+    nMembers = mov.castLib(n).member.count
+    cFolderName = mov.castLib(n).name
+    repeat with m = 1 to nMembers
+      tMember = mov.member(m, n)
+      if tMember.type = #sound then
+        tName = tMember.name
+        if tName = EMPTY then tName = string(m)
+        tNumS = string(m)
+        mNumS = string(n)
+        OK = mov.axLoadSound(tNumS, "member", tMember)
+        --if OK <> 0 then put "axLoadSound failed:", OK, n, m
+        OK = mov.axConvertToFile(tNumS, ".\" & item 1 of mov.name & "--" & cFolderName & "__" & tName & ".wav", "WAVE")
+        --if OK <> 0 then put "Export msg code:", OK, n, m
+        OK = mov.axRemoveSound(tNumS)
+      end if
+    end repeat
+  end repeat
+  put "Exported audio"
+  window(arg).close()
+end
