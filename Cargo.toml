@@ -1,0 +1,15 @@
+[package]
+name = "cgex"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+data-encoding = "2.6.0"
+rayon = "1.10.0"
+ring = "0.17.8"
+imagequant = "2.12.5"
+image = "0.12"
+bytevec = "0.2.0"
+alumina = { version = "0.1.1" , features = ["images"]}
+rand = "0.8.5"
