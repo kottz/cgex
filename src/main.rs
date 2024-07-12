@@ -86,10 +86,9 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
     }
     let total = dir_files.len();
 
-    let mut counted_files = fs::read_dir(temp_dir).iter().count();
     for (i, dir) in dir_files.iter().enumerate() {
         let file_name = dir.file_name().to_string_lossy().into_owned();
-        print!(
+        println!(
             "Extracting assets from: {:?} ({}/{})",
             file_name,
             i + 1,
@@ -97,13 +96,6 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
         );
         run_extractor(temp_dir, &file_name)
             .context(format!("Failed to extract assets from: {:?}", file_name))?;
-        // count the number of files in the directory now
-        let tot_files = fs::read_dir(temp_dir).iter().count();
-        println!(
-            " - Files extracted from archive: {}",
-            tot_files - counted_files
-        );
-        counted_files = tot_files;
     }
 
     Ok(())
