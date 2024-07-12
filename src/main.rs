@@ -1,12 +1,13 @@
 use anyhow::{bail, Context, Result};
+use clap::Parser;
 use data_encoding::HEXUPPER;
 use rayon::prelude::*;
 use ring::digest::{Context as DigestContext, SHA256};
 use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File};
-use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
+use std::io::Read;
+use std::path::Path;
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -14,6 +15,18 @@ mod img;
 mod network;
 
 use img::process_image;
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Input directory containing the disc contents
+    #[arg(short, long, default_value = "disc_contents/data")]
+    input_dir: String,
+
+    /// Output directory for processed files
+    #[arg(short, long, default_value = "output")]
+    output_dir: String,
+}
 
 fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst)?;
@@ -65,14 +78,6 @@ fn check_wine_installation() -> Result<()> {
     Ok(())
 }
 
-fn count_files(dir: &Path) -> Result<usize> {
-    let count = fs::read_dir(dir)?
-        .filter_map(Result::ok)
-        .filter(|entry| entry.file_type().map(|ft| ft.is_file()).unwrap_or(false))
-        .count();
-    Ok(count)
-}
-
 fn extract_files(temp_dir: &Path) -> Result<()> {
     let dir_files = find_files(temp_dir, ".dir")
         .context("Failed to find .dir files. Make sure the input directory is correct and contains .dir files.")?;
@@ -80,19 +85,24 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
         bail!("No .dir files found in the input directory. Please check your input path.");
     }
     let total = dir_files.len();
-    for (i, dir) in dir_files.iter().enumerate() {
-        let file_name = dir.file_name().to_string_lossy().into_owned();
-        println!(
-            "Extracting assets from: {:?} ({}/{})",
-            file_name,
-            i + 1,
-            total
-        );
-        run_extractor(temp_dir, &file_name)
-            .context(format!("Failed to extract assets from: {:?}", file_name))?;
-        let extracted_files = count_files(temp_dir)?;
-        println!("Extracted {} files", extracted_files);
-    }
+
+    dir_files
+        .par_iter()
+        .enumerate()
+        .try_for_each(|(i, dir)| -> Result<()> {
+            let file_name = dir.file_name().to_string_lossy().into_owned();
+            println!(
+                "Extracting assets from: {:?} ({}/{})",
+                file_name,
+                i + 1,
+                total
+            );
+            run_extractor(temp_dir, &file_name)
+                .context(format!("Failed to extract assets from: {:?}", file_name))?;
+            Ok(())
+        })
+        .context("Failed to extract files")?;
+
     Ok(())
 }
 
@@ -152,6 +162,9 @@ fn find_files(dir: &Path, extension: &str) -> Result<Vec<fs::DirEntry>> {
 }
 
 fn copy_and_remove(src: &Path, dst: &Path) -> Result<()> {
+    if let Some(parent) = dst.parent() {
+        fs::create_dir_all(parent).context(format!("Failed to create directory {:?}", parent))?;
+    }
     fs::copy(src, dst).context(format!("Failed to copy file from {:?} to {:?}", src, dst))?;
     fs::remove_file(src).context(format!(
         "Failed to remove original file {:?} after copying",
@@ -161,8 +174,10 @@ fn copy_and_remove(src: &Path, dst: &Path) -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    let input_dir = Path::new("disc_contents/data");
-    let output_dir = Path::new("output");
+    let args = Args::parse();
+
+    let input_dir = Path::new(&args.input_dir);
+    let output_dir = Path::new(&args.output_dir);
     let extractor_tools_dir = Path::new("extractor_tools");
 
     if !input_dir.exists() {
@@ -254,8 +269,20 @@ fn main() -> Result<()> {
             .context(format!("Failed to find {} files for moving", extension))?;
         for file in files {
             let src_path = file.path();
-            let dst_path = output_dir.join(src_path.strip_prefix(&temp_dir)?);
-            fs::create_dir_all(dst_path.parent().unwrap())?;
+            let file_name = src_path.file_name().unwrap().to_str().unwrap();
+            let parts: Vec<&str> = file_name.split("--").collect();
+
+            let dst_path = if parts.len() > 1 {
+                let mut path = output_dir.to_path_buf();
+                for part in &parts[..parts.len() - 1] {
+                    path.push(part);
+                }
+                path.push(parts.last().unwrap());
+                path
+            } else {
+                output_dir.join(file_name)
+            };
+
             copy_and_remove(&src_path, &dst_path)
                 .context(format!("Failed to move file: {:?}", src_path))?;
         }
