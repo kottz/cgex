@@ -20,7 +20,7 @@ use img::process_image;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Input directory containing the disc contents
-    #[arg(short, long, default_value = "disc_contents/data")]
+    #[arg(short, long, default_value = "disc_contents/Data")]
     input_dir: String,
 
     /// Output directory for processed files
