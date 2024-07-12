@@ -1,6 +1,7 @@
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 use data_encoding::HEXUPPER;
+use image::ImageFormat;
 use rayon::prelude::*;
 use ring::digest::{Context as DigestContext, SHA256};
 use std::collections::HashSet;
@@ -8,6 +9,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -26,6 +28,14 @@ struct Args {
     /// Output directory for processed files
     #[arg(short, long, default_value = "output")]
     output_dir: String,
+
+    /// Disable WebP compression (default: compression enabled)
+    #[arg(long)]
+    no_compression: bool,
+
+    /// Disable upscaling (default: upscaling enabled)
+    #[arg(long)]
+    no_upscale: bool,
 }
 
 fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
@@ -168,6 +178,45 @@ fn copy_and_remove(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
+fn move_file_to_output(src_path: &Path, output_dir: &Path, extension: Option<&str>) -> Result<()> {
+    let file_name = src_path.file_name().unwrap().to_str().unwrap();
+
+    // Split by "--" for folders, then by "__" for the final filename
+    let parts: Vec<&str> = file_name.split("--").collect();
+    let dst_path = if parts.len() > 1 {
+        let mut path = output_dir.to_path_buf();
+        for part in &parts[..parts.len() - 1] {
+            path.push(part);
+        }
+
+        // Handle the last part (which may contain "__")
+        let last_part = parts.last().unwrap();
+        let file_parts: Vec<&str> = last_part.split("__").collect();
+        if file_parts.len() > 1 {
+            path.push(file_parts[0]);
+            path.push(file_parts[1..].join("__"));
+        } else {
+            path.push(last_part);
+        }
+
+        if let Some(ext) = extension {
+            path.with_extension(ext)
+        } else {
+            path
+        }
+    } else {
+        let mut path = output_dir.join(file_name);
+        if let Some(ext) = extension {
+            path.set_extension(ext);
+        }
+        path
+    };
+
+    copy_and_remove(src_path, &dst_path).context(format!("Failed to move file: {:?}", src_path))?;
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
 
@@ -234,64 +283,65 @@ fn main() -> Result<()> {
         }
     }
 
-    println!("Performing AI-upscaling. This might take a while...");
+    println!(
+        "Processing images{}{}. This might take a while...",
+        if args.no_upscale {
+            ""
+        } else {
+            " with AI-upscaling"
+        },
+        if args.no_compression {
+            ""
+        } else {
+            " and compression"
+        }
+    );
+
     let bmp_files =
-        find_files(&temp_dir, ".bmp").context("Failed to find BMP files for upscaling")?;
+        find_files(&temp_dir, ".bmp").context("Failed to find BMP files for processing")?;
     let total = bmp_files.len();
     let counter = AtomicUsize::new(1);
 
-    bmp_files.par_iter().try_for_each(|entry| -> Result<()> {
-        let current = counter.fetch_add(1, Ordering::SeqCst);
-        println!(
-            "Performing upscaling on: {:?} ({}/{})",
-            entry.file_name(),
-            current,
-            total
-        );
+    let processed_files: Vec<(PathBuf, ImageFormat)> = bmp_files
+        .par_iter()
+        .map(|entry| -> Result<(PathBuf, ImageFormat)> {
+            let current = counter.fetch_add(1, Ordering::SeqCst);
+            println!(
+                "Processing: {:?} ({}/{})",
+                entry.file_name(),
+                current,
+                total
+            );
 
-        let input_path = entry.path();
-        let output_path = input_path.with_extension("png");
-
-        process_image(&input_path, &output_path)
+            let input_path = entry.path();
+            let output_path = temp_dir.join(input_path.file_name().unwrap());
+            let format = process_image(
+                &input_path,
+                &output_path,
+                !args.no_compression,
+                !args.no_upscale,
+            )
             .context(format!("Failed to process image: {:?}", input_path))?;
-        Ok(())
-    })?;
+            Ok((output_path, format))
+        })
+        .collect::<Result<Vec<_>>>()?;
 
     println!("Moving files into final directory structure");
     fs::create_dir_all(output_dir).context("Failed to create output directory")?;
-    for extension in &[".png", ".wav"] {
-        let files = find_files(&temp_dir, extension)
-            .context(format!("Failed to find {} files for moving", extension))?;
-        for file in files {
-            let src_path = file.path();
-            let file_name = src_path.file_name().unwrap().to_str().unwrap();
 
-            // Split by "--" for folders, then by "__" for the final filename
-            let parts: Vec<&str> = file_name.split("--").collect();
-            let dst_path = if parts.len() > 1 {
-                let mut path = output_dir.to_path_buf();
-                for part in &parts[..parts.len() - 1] {
-                    path.push(part);
-                }
+    // Move processed image files
+    for (temp_path, format) in processed_files {
+        let extension = format.extensions_str()[0];
+        move_file_to_output(&temp_path, output_dir, Some(extension))
+            .context(format!("Failed to move processed file: {:?}", temp_path))?;
+    }
 
-                // Handle the last part (which may contain "__")
-                let last_part = parts.last().unwrap();
-                let file_parts: Vec<&str> = last_part.split("__").collect();
-                if file_parts.len() > 1 {
-                    path.push(file_parts[0]);
-                    path.push(file_parts[1..].join("__"));
-                } else {
-                    path.push(last_part);
-                }
-
-                path
-            } else {
-                output_dir.join(file_name)
-            };
-
-            copy_and_remove(&src_path, &dst_path)
-                .context(format!("Failed to move file: {:?}", src_path))?;
-        }
+    // Move WAV files
+    let wav_files = find_files(&temp_dir, ".wav").context("Failed to find WAV files for moving")?;
+    for file in wav_files {
+        let src_path = file.path();
+        move_file_to_output(&src_path, output_dir, None)
+            .context(format!("Failed to move WAV file: {:?}", src_path))?;
     }
 
     println!("Cleaning up temporary directory");

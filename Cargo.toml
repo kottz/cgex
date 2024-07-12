@@ -9,8 +9,10 @@ data-encoding = "2.6.0"
 rayon = "1.10.0"
 ring = "0.17.8"
 imagequant = "2.12.5"
-image = "0.12"
+#image = "0.12"
+image = "0.25.1"
 bytevec = "0.2.0"
 alumina = { version = "0.1.1" , features = ["images"]}
 rand = "0.8.5"
 clap = { version = "4.5.9" , features = ["derive"]}
+webp = "0.3.0"
