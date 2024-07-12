@@ -186,7 +186,7 @@ fn main() -> Result<()> {
     check_wine_installation()?;
 
     // Create a unique temporary directory
-    let temp_dir = env::temp_dir().join(format!("game_extractor_{}", std::process::id()));
+    let temp_dir = env::temp_dir().join(format!("cgex_{}", std::process::id()));
     fs::create_dir_all(&temp_dir).context("Failed to create temporary directory")?;
     println!("Using temporary directory: {}", temp_dir.display());
 
