@@ -86,22 +86,25 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
     }
     let total = dir_files.len();
 
-    dir_files
-        .par_iter()
-        .enumerate()
-        .try_for_each(|(i, dir)| -> Result<()> {
-            let file_name = dir.file_name().to_string_lossy().into_owned();
-            println!(
-                "Extracting assets from: {:?} ({}/{})",
-                file_name,
-                i + 1,
-                total
-            );
-            run_extractor(temp_dir, &file_name)
-                .context(format!("Failed to extract assets from: {:?}", file_name))?;
-            Ok(())
-        })
-        .context("Failed to extract files")?;
+    let mut counted_files = fs::read_dir(temp_dir).iter().count();
+    for (i, dir) in dir_files.iter().enumerate() {
+        let file_name = dir.file_name().to_string_lossy().into_owned();
+        print!(
+            "Extracting assets from: {:?} ({}/{})",
+            file_name,
+            i + 1,
+            total
+        );
+        run_extractor(temp_dir, &file_name)
+            .context(format!("Failed to extract assets from: {:?}", file_name))?;
+        // count the number of files in the directory now
+        let tot_files = fs::read_dir(temp_dir).iter().count();
+        println!(
+            " - Files extracted from archive: {}",
+            tot_files - counted_files
+        );
+        counted_files = tot_files;
+    }
 
     Ok(())
 }
@@ -270,14 +273,25 @@ fn main() -> Result<()> {
         for file in files {
             let src_path = file.path();
             let file_name = src_path.file_name().unwrap().to_str().unwrap();
-            let parts: Vec<&str> = file_name.split("--").collect();
 
+            // Split by "--" for folders, then by "__" for the final filename
+            let parts: Vec<&str> = file_name.split("--").collect();
             let dst_path = if parts.len() > 1 {
                 let mut path = output_dir.to_path_buf();
                 for part in &parts[..parts.len() - 1] {
                     path.push(part);
                 }
-                path.push(parts.last().unwrap());
+
+                // Handle the last part (which may contain "__")
+                let last_part = parts.last().unwrap();
+                let file_parts: Vec<&str> = last_part.split("__").collect();
+                if file_parts.len() > 1 {
+                    path.push(file_parts[0]);
+                    path.push(file_parts[1..].join("__"));
+                } else {
+                    path.push(last_part);
+                }
+
                 path
             } else {
                 output_dir.join(file_name)
