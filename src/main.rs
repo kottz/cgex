@@ -329,6 +329,18 @@ fn main() -> Result<()> {
     println!("Moving files into final directory structure");
     fs::create_dir_all(output_dir).context("Failed to create output directory")?;
 
+    // Copy an image that is needed for the engine to work
+    for (temp_path, format) in &processed_files {
+        let extension = format.extensions_str()[0];
+        if temp_path.file_name().unwrap().to_str().unwrap().starts_with("berlin--Animationer__vanheden700") {
+            let new_file_name = format!("berlin--Animationer__vanheden707.{}", extension);
+            let new_path = temp_path.with_file_name(new_file_name);
+
+            if temp_path.exists() {
+                fs::copy(&temp_path, &new_path).context(format!("Failed to copy file: {:?}", temp_path))?;
+            }
+        }
+    }
     // Move processed image files
     for (temp_path, format) in processed_files {
         let extension = format.extensions_str()[0];
