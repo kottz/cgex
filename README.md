@@ -27,7 +27,7 @@ mkdir output
 
 ```bash
 docker run --rm \
-  -v ./disc_contents:/input/Data:ro \
+  -v ./disc_contents:/input:ro \
   -v ./output:/output \
   -e HOST_UID=$(id -u) \
   -e HOST_GID=$(id -g) \
