@@ -20,12 +20,17 @@ mkdir output
 
 ### Linux (using Docker)
 
-1. Insert game CD or mount your .iso and copy everything on the CD into the `disc_contents` folder.
-2. Create an `output` folder for extracted assets.
-3. cd into project folder.
-3. Run the following command:
+1. Clone the repository
+2. Insert game CD or mount your .iso and copy everything on the CD into the `disc_contents` folder.
+3. Create an `output` folder for extracted assets.
+4. cd into project folder.
+5. Run the docker command below.
 
 ```bash
+git clone https://github.com/kottz/cgex
+cd cgex
+mkdir disc_contents
+mkdir output
 docker run --rm \
   -v ./disc_contents:/input:ro \
   -v ./output:/output \
