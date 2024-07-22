@@ -1,7 +1,7 @@
 # cgex
 cgex is a tool for extracting assets from Macromedia/Adobe Director games. Currently supports:
 
-- Jönssonligan: Jakten på Mjölner
+- *Jönssonligan: Jakten på Mjölner*
 
 cgex will extract the textures and audio files from the original game files. By default, cgex will also perform AI upscaling on the texture assets.
 
