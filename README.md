@@ -52,7 +52,7 @@ If you use both options at the same time cgex will output the original untouched
 
 ## Legal
 
-This tool is for personal use only. You need to own the game to use this tool. Ensure you have the right to extract and use game assets in your region.
+This tool is for personal use only. Ensure you have the right to extract and use game assets in your region.
 
 ## TODO
 - Provide a pre-compiled executable for Windows.
