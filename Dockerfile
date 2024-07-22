@@ -42,7 +42,7 @@ WORKDIR /app
 COPY extractor_tools /app/extractor_tools
 
 # Copy only the necessary Rust files
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 COPY src ./src
 
 # Build the Rust project
