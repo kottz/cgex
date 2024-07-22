@@ -14,7 +14,7 @@ export DISPLAY=:99
 # Xvfb needs some time to start or else we get weird silent errors
 sleep 5
 
-/app/target/release/cgex -i /input -o /output --no-upscale --no-compression
+/app/target/release/cgex -i /input -o /output #--no-upscale --no-compression
 
 if [ ! -z "$HOST_UID" ] && [ ! -z "$HOST_GID" ]; then
     echo "Changing ownership of output files to $HOST_UID:$HOST_GID"
