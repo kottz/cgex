@@ -22,7 +22,7 @@ use img::process_image;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Input directory containing the disc contents
-    #[arg(short, long, default_value = "disc_contents/Data")]
+    #[arg(short, long, default_value = "disc_contents")]
     input_dir: String,
 
     /// Output directory for processed files
@@ -238,6 +238,20 @@ fn main() -> Result<()> {
         );
     }
 
+    let input_dir = fs::read_dir(&input_dir)
+        .context("Failed to read input directory")?
+        .filter_map(Result::ok)
+        .find(|entry| {
+            let path = entry.path();
+            path.is_dir()
+                && path
+                    .file_name()
+                    .map(|name| name.to_string_lossy().to_lowercase() == "data")
+                    .unwrap_or(false)
+        })
+        .map(|entry| entry.path())
+        .context("No data or Data directory found")?;
+
     #[cfg(not(target_os = "windows"))]
     check_wine_installation()?;
 
@@ -247,7 +261,7 @@ fn main() -> Result<()> {
     println!("Using temporary directory: {}", temp_dir.display());
 
     println!("Copying files to temporary directory");
-    copy_directory(input_dir, &temp_dir).context("Failed to copy input directory to temp")?;
+    copy_directory(&input_dir, &temp_dir).context("Failed to copy input directory to temp")?;
 
     // Copy dir_extractor.exe
     fs::copy(
