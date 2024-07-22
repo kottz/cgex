@@ -130,23 +130,23 @@ fn hash_file(path: &Path) -> Result<String> {
 
 fn remove_duplicates(path: &Path) -> Result<()> {
     let mut set = HashSet::new();
-    let output_files = fs::read_dir(path).context("Failed to read output directory")?;
+    let mut files: Vec<PathBuf> = fs::read_dir(path)
+        .context("Failed to read output directory")?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file())
+        .collect();
 
-    for entry in output_files {
-        let entry = entry.context("Failed to read directory entry")?;
-        let path = entry.path();
+    files.sort();
 
-        if path.is_file() {
-            let hash = hash_file(&path)?;
-
-            if set.contains(&hash) {
-                fs::remove_file(&path).context("Failed to remove duplicate file")?;
-            } else {
-                set.insert(hash);
-            }
+    for path in files {
+        let hash = hash_file(&path)?;
+        if set.contains(&hash) {
+            fs::remove_file(&path).context("Failed to remove duplicate file")?;
+        } else {
+            set.insert(hash);
         }
     }
-
     Ok(())
 }
 
