@@ -178,41 +178,48 @@ fn copy_and_remove(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
+// Example filenames as the are exported from dir_extracter.
+// folder split by "--" and filename split by "__"
+//
+// "paris--Internal__Bänken-254.bmp" -> paris/Internal/Bänken-254.bmp
+// "london--Internal__-232.bmp" -> london/Internal/232.bmp (strips leading "-")
+// "stockholm--Animationer__bilen0045-161.bmp" -> stockholm/Animationer/bilen0045-161.bmp
+//
 fn move_file_to_output(src_path: &Path, output_dir: &Path, extension: Option<&str>) -> Result<()> {
-    let file_name = src_path.file_name().unwrap().to_str().unwrap();
+    let file_name = src_path
+        .file_name()
+        .and_then(|os_str| os_str.to_str())
+        .context("Invalid file name")?;
 
-    // Split by "--" for folders, then by "__" for the final filename
     let parts: Vec<&str> = file_name.split("--").collect();
-    let dst_path = if parts.len() > 1 {
-        let mut path = output_dir.to_path_buf();
-        for part in &parts[..parts.len() - 1] {
-            path.push(part);
-        }
+    let mut dst_path = output_dir.to_path_buf();
 
-        // Handle the last part (which may contain "__")
-        let last_part = parts.last().unwrap();
-        let file_parts: Vec<&str> = last_part.split("__").collect();
+    if parts.len() > 1 {
+        // Add directory components
+        dst_path.extend(&parts[..parts.len() - 1]);
+
+        // Process the last part (file name)
+        let file_parts: Vec<&str> = parts.last().unwrap().split("__").collect();
         if file_parts.len() > 1 {
-            path.push(file_parts[0]);
-            path.push(file_parts[1..].join("__"));
+            dst_path.push(&file_parts[0]);
+            let mut final_name = file_parts[1..].join("__");
+            if final_name.starts_with('-') {
+                final_name = final_name[1..].to_string();
+            }
+            dst_path.push(final_name);
         } else {
-            path.push(last_part);
-        }
-
-        if let Some(ext) = extension {
-            path.with_extension(ext)
-        } else {
-            path
+            dst_path.push(parts.last().unwrap());
         }
     } else {
-        let mut path = output_dir.join(file_name);
-        if let Some(ext) = extension {
-            path.set_extension(ext);
-        }
-        path
-    };
+        dst_path.push(file_name);
+    }
 
-    copy_and_remove(src_path, &dst_path).context(format!("Failed to move file: {:?}", src_path))?;
+    if let Some(ext) = extension {
+        dst_path.set_extension(ext);
+    }
+
+    copy_and_remove(src_path, &dst_path)
+        .with_context(|| format!("Failed to move file: {:?}", src_path))?;
 
     Ok(())
 }
@@ -332,12 +339,19 @@ fn main() -> Result<()> {
     // Copy an image that is needed for the engine to work
     for (temp_path, format) in &processed_files {
         let extension = format.extensions_str()[0];
-        if temp_path.file_name().unwrap().to_str().unwrap().starts_with("berlin--Animationer__vanheden700") {
+        if temp_path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .starts_with("berlin--Animationer__vanheden700")
+        {
             let new_file_name = format!("berlin--Animationer__vanheden707.{}", extension);
             let new_path = temp_path.with_file_name(new_file_name);
 
             if temp_path.exists() {
-                fs::copy(&temp_path, &new_path).context(format!("Failed to copy file: {:?}", temp_path))?;
+                fs::copy(&temp_path, &new_path)
+                    .context(format!("Failed to copy file: {:?}", temp_path))?;
             }
         }
     }
