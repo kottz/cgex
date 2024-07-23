@@ -312,9 +312,7 @@ fn main() -> Result<()> {
 
     let temp_dir = env::temp_dir().join(format!("cgex_{}", std::process::id()));
     fs::create_dir_all(&temp_dir).context("Failed to create temporary directory")?;
-    println!("Using temporary directory: {}", temp_dir.display());
 
-    println!("Copying files to temporary directory");
     game_extractor::copy_directory(&input_dir, &temp_dir)
         .context("Failed to copy input directory to temp")?;
 
@@ -331,7 +329,6 @@ fn main() -> Result<()> {
     game_extractor::copy_directory(&xtras_src, &xtras_dst)
         .context("Failed to copy Xtras folder")?;
 
-    println!("Extracting assets");
     extract_files(&temp_dir).context("Failed to extract files")?;
 
     println!("Removing duplicates. This might take a while...");
@@ -343,7 +340,6 @@ fn main() -> Result<()> {
     let broken_images = game.get_broken_images();
     for file in &broken_images {
         let path = temp_dir.join(file);
-        println!("Removing: {:?}", path);
         if let Err(e) = fs::remove_file(&path) {
             println!("Warning: Failed to remove file {:?}: {}", path, e);
         }
