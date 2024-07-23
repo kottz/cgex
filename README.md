@@ -27,20 +27,19 @@ mkdir output
 2. Insert game CD or mount your .iso and copy everything on the CD into the `disc_contents` folder.
 3. Create an `output` folder for extracted assets.
 4. cd into project folder.
-5. Build and run the docker container with the command below.
+5. Run the docker container with the command below.
 
 ```bash
 git clone https://github.com/kottz/cgex
 cd cgex
 mkdir disc_contents
 mkdir output
-docker build -t cgex .
 docker run --rm \
   -v ./disc_contents:/input:ro \
   -v ./output:/output \
   -e HOST_UID=$(id -u) \
   -e HOST_GID=$(id -g) \
-  cgex
+  kottz/cgex:latest
 ```
 
 If you want to skip the compression or upscaling step when running cgex with the docker container you can add these environment variables.
@@ -52,7 +51,7 @@ docker run --rm \
   -e HOST_GID=$(id -g) \
   -e NO_UPSCALE=true \
   -e NO_COMPRESSION=true \
-  cgex
+  kottz/cgex:latest
 ```
 
 Extracted assets will be placed in the `output` folder, organized by type and game area. Extraction process may take a long time depending on your system.
