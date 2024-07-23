@@ -4,6 +4,8 @@ use std::collections::HashSet;
 use std::fs::{self};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
@@ -122,7 +124,15 @@ impl GameExtractor for JonssonDjupet {
     }
 
     fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
-        prepare_jonsson_temp_directory(temp_dir)
+        prepare_jonsson_temp_directory(temp_dir)?;
+
+        // Handle Xtras folder
+        let xtras_src = temp_dir.join("xtras");
+        let xtras_dst = temp_dir.join("Xtras");
+        copy_directory(&xtras_src, &xtras_dst)
+            .context("Failed to copy xtras folder contents to Xtras")?;
+        fs::remove_dir_all(&xtras_src).context("Failed to remove xtras folder")?;
+        Ok(())
     }
 
     fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
@@ -188,12 +198,11 @@ impl GameExtractor for MulleBil {
         _temp_dir: &Path,
         _processed_files: &[(PathBuf, ImageFormat)],
     ) -> Result<()> {
-        // Any specific post-extraction setup for MulleBil
         Ok(())
     }
 
     fn get_broken_images(&self) -> Vec<&'static str> {
-        vec![] // Add any known broken images for MulleBil
+        vec!["02--00__Dummy-2.bmp"]
     }
 
     fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
@@ -206,6 +215,9 @@ impl GameExtractor for MulleBil {
             let temp_dir = temp_dir.to_path_buf();
             let dir_file = dir_file.to_string();
 
+            let running = Arc::new(AtomicBool::new(true));
+            let running_clone = running.clone();
+
             let extractor_thread = thread::spawn(move || {
                 Command::new("wine")
                     .arg("dir_extractor.exe")
@@ -214,23 +226,42 @@ impl GameExtractor for MulleBil {
                     .output()
             });
 
-            let xdotool_thread = thread::spawn(|| loop {
-                let _ = Command::new("xdotool")
-                    .args(&[
-                        "search",
-                        "--name",
-                        "Director Player Error",
-                        "windowactivate",
-                        "--sync",
-                        "key",
-                        "Return",
-                    ])
-                    .output();
-                thread::sleep(Duration::from_millis(250));
+            // When we run the dir_extractor Mulle Meck bygger bilar will
+            // throw a Director Player Error dialog that needs to be dismissed
+            // but the extract process will still work as long as we just dismiss
+            // the error dialogs. We can use xdotool to press Enter to dismiss the dialog.
+            let xdotool_thread = thread::spawn(move || {
+                while running_clone.load(Ordering::SeqCst) {
+                    let output = Command::new("xdotool").args(&["key", "Return"]).output();
+
+                    match output {
+                        Ok(o) => {
+                            if !o.stdout.is_empty() {
+                                println!("xdotool output: {}", String::from_utf8_lossy(&o.stdout));
+                            }
+                            if !o.stderr.is_empty() {
+                                eprintln!("xdotool error: {}", String::from_utf8_lossy(&o.stderr));
+                            }
+                        }
+                        Err(e) => eprintln!("Failed to run xdotool: {}", e),
+                    }
+
+                    thread::sleep(Duration::from_millis(250));
+                }
             });
 
             let result = extractor_thread.join().unwrap()?;
-            xdotool_thread.join().unwrap();
+
+            // Signal the xdotool thread to stop
+            running.store(false, Ordering::SeqCst);
+
+            // Wait a bit for the xdotool thread to finish its last iteration
+            thread::sleep(Duration::from_millis(500));
+
+            // Now we can safely join the xdotool thread
+            if let Err(e) = xdotool_thread.join() {
+                eprintln!("Error joining xdotool thread: {:?}", e);
+            }
 
             Ok(result)
         }
@@ -308,13 +339,6 @@ pub fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
 }
 
 fn prepare_jonsson_temp_directory(temp_dir: &Path) -> Result<()> {
-    // Handle Xtras folder
-    let xtras_src = temp_dir.join("xtras");
-    let xtras_dst = temp_dir.join("Xtras");
-    copy_directory(&xtras_src, &xtras_dst)
-        .context("Failed to copy xtras folder contents to Xtras")?;
-    fs::remove_dir_all(&xtras_src).context("Failed to remove xtras folder")?;
-
     // Handle case-insensitive data directory
     let data_dir = fs::read_dir(temp_dir)?
         .filter_map(Result::ok)
@@ -331,11 +355,18 @@ fn prepare_jonsson_temp_directory(temp_dir: &Path) -> Result<()> {
     if let Some(data_dir) = data_dir {
         for entry in fs::read_dir(&data_dir)? {
             let entry = entry?;
-            let path = entry.path();
-            let new_path = temp_dir.join(path.file_name().unwrap());
-            fs::rename(path, new_path)?;
+            let src_path = entry.path();
+            let dst_path = temp_dir.join(entry.file_name());
+
+            if src_path.is_dir() {
+                copy_directory(&src_path, &dst_path)
+                    .context(format!("Failed to copy directory: {:?}", src_path))?;
+            } else {
+                fs::copy(&src_path, &dst_path)
+                    .context(format!("Failed to copy file: {:?}", src_path))?;
+            }
         }
-        fs::remove_dir(data_dir)?;
     }
+
     Ok(())
 }

@@ -106,25 +106,6 @@ fn find_dir_files(dir: &Path) -> Result<Vec<PathBuf>> {
     Ok(dir_files)
 }
 
-#[cfg(target_os = "windows")]
-fn run_extractor(temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
-    Command::new(temp_dir.join("dir_extractor.exe"))
-        .arg(dir_file)
-        .current_dir(temp_dir)
-        .output()
-        .context("Failed to run extractor on Windows")
-}
-
-#[cfg(not(target_os = "windows"))]
-fn run_extractor(temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
-    Command::new("wine")
-        .arg("dir_extractor.exe")
-        .arg(dir_file)
-        .current_dir(temp_dir)
-        .output()
-        .context("Failed to run extractor with Wine")
-}
-
 #[cfg(not(target_os = "windows"))]
 fn check_wine_installation() -> Result<()> {
     let output = Command::new("wine")
@@ -139,7 +120,7 @@ fn check_wine_installation() -> Result<()> {
     Ok(())
 }
 
-fn extract_files(temp_dir: &Path) -> Result<()> {
+fn extract_files(temp_dir: &Path, game: &Box<dyn GameExtractor>) -> Result<()> {
     let files = find_files(temp_dir, &[".dir", ".dxr"])
         .context("Failed to find .dir or .dxr files. Make sure the input directory is correct and contains these files.")?;
 
@@ -156,7 +137,7 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
             i + 1,
             total
         );
-        run_extractor(temp_dir, &file_name)
+        game.run_extractor(temp_dir, &file_name)
             .context(format!("Failed to extract assets from: {:?}", file_name))?;
     }
     Ok(())
@@ -302,7 +283,7 @@ fn main() -> Result<()> {
     // Prepare the temp directory based on the specific game requirements
     game.prepare_temp_directory(&temp_dir)?;
 
-    extract_files(&temp_dir).context("Failed to extract files")?;
+    extract_files(&temp_dir, &game).context("Failed to extract files")?;
 
     println!("Removing duplicates. This might take a while...");
     if let Err(e) = remove_duplicates(&temp_dir) {
@@ -333,47 +314,59 @@ fn main() -> Result<()> {
     );
 
     let bmp_files =
-        find_files(&temp_dir, ".bmp").context("Failed to find BMP files for processing")?;
+        find_files(&temp_dir, &[".bmp"]).context("Failed to find BMP files for processing")?;
     let total = bmp_files.len();
     let counter = AtomicUsize::new(1);
 
-    let processed_files: Vec<(PathBuf, ImageFormat)> = bmp_files
+    let processed_files: Vec<Result<(PathBuf, ImageFormat)>> = bmp_files
         .into_par_iter()
         .map(|entry| -> Result<(PathBuf, ImageFormat)> {
             let current = counter.fetch_add(1, Ordering::SeqCst);
-            println!(
-                "Processing: {:?} ({}/{})",
-                entry.file_name(),
-                current,
-                total
-            );
+            let file_n = entry.file_name();
+            let file_name = file_n.to_string_lossy();
+            println!("Processing: {:?} ({}/{})", file_name, current, total);
 
             let input_path = entry.path();
             let output_path = temp_dir.join(input_path.file_name().unwrap());
-            let format = process_image(
+            process_image(
                 &input_path,
                 &output_path,
                 !args.no_compression,
                 !args.no_upscale,
                 game.get_transparent_color(),
             )
-            .context(format!("Failed to process image: {:?}", input_path))?;
-            Ok((output_path, format))
+            .map(|format| (output_path, format))
+            .with_context(|| format!("Failed to process image: {:?}", input_path))
         })
-        .collect::<Result<Vec<_>>>()?;
+        .collect();
 
-    game.post_extraction_setup(&temp_dir, &processed_files)?;
+    // Handle successful and failed image processing
+    let (successful, failed): (Vec<_>, Vec<_>) =
+        processed_files.into_iter().partition(Result::is_ok);
+
+    let successful: Vec<(PathBuf, ImageFormat)> =
+        successful.into_iter().map(Result::unwrap).collect();
+
+    // Report failed images
+    for error in failed {
+        if let Err(e) = error {
+            eprintln!("Error processing image: {}", e);
+        }
+    }
+
+    game.post_extraction_setup(&temp_dir, &successful)?;
 
     println!("Moving files into final directory structure");
     fs::create_dir_all(output_dir).context("Failed to create output directory")?;
 
-    for (temp_path, format) in processed_files {
+    for (temp_path, format) in successful {
         let extension = format.extensions_str()[0];
         move_file_to_output(&temp_path, output_dir, Some(extension))
-            .context(format!("Failed to move processed file: {:?}", temp_path))?;
+            .with_context(|| format!("Failed to move processed file: {:?}", temp_path))?;
     }
 
-    let wav_files = find_files(&temp_dir, ".wav").context("Failed to find WAV files for moving")?;
+    let wav_files =
+        find_files(&temp_dir, &[".wav"]).context("Failed to find WAV files for moving")?;
     for file in wav_files {
         let src_path = file.path();
         move_file_to_output(&src_path, output_dir, None)

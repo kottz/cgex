@@ -12,6 +12,7 @@ Xvfb :99 -screen 0 1024x768x16 &
 export DISPLAY=:99
 
 # Xvfb needs some time to start or else we get weird silent errors
+echo ""
 sleep 5
 
 # Check if RUN_BASH is set
