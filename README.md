@@ -1,5 +1,5 @@
 # cgex
-cgex is a tool for extracting assets from Macromedia/Adobe Director games. Currently supports:
+cgex is a tool for extracting assets from Macromedia/Adobe Director games. It currently supports:
 
 - *Jönssonligan: Jakten på Mjölner*
 - *Jönssonligan: Går på Djupet*
