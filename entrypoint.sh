@@ -12,22 +12,28 @@ Xvfb :99 -screen 0 1024x768x16 &
 export DISPLAY=:99
 
 # Xvfb needs some time to start or else we get weird silent errors
+echo ""
 sleep 5
 
-# Build the command with optional flags
-CMD="/app/target/release/cgex -i /input -o /output"
-if [ "$NO_UPSCALE" = "true" ]; then
-    CMD="$CMD --no-upscale"
-fi
-if [ "$NO_COMPRESSION" = "true" ]; then
-    CMD="$CMD --no-compression"
-fi
-
-eval $CMD
-
-if [ ! -z "$HOST_UID" ] && [ ! -z "$HOST_GID" ]; then
-    echo "Changing ownership of output files to $HOST_UID:$HOST_GID"
-    chown -R $HOST_UID:$HOST_GID /output
+# Check if RUN_BASH is set
+if [ ! -z "$RUN_BASH" ]; then
+    echo "RUN_BASH is set. Starting bash shell..."
+    exec /bin/bash
 else
-    echo "HOST_UID and/or HOST_GID not set. Skipping ownership change."
+    # Build the command with optional flags
+    CMD="/app/target/release/cgex -i /input -o /output"
+    if [ "$NO_UPSCALE" = "true" ]; then
+        CMD="$CMD --no-upscale"
+    fi
+    if [ "$NO_COMPRESSION" = "true" ]; then
+        CMD="$CMD --no-compression"
+    fi
+    eval $CMD
+
+    if [ ! -z "$HOST_UID" ] && [ ! -z "$HOST_GID" ]; then
+        echo "Changing ownership of output files to $HOST_UID:$HOST_GID"
+        chown -R $HOST_UID:$HOST_GID /output
+    else
+        echo "HOST_UID and/or HOST_GID not set. Skipping ownership change."
+    fi
 fi

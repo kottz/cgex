@@ -6,6 +6,7 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         wget \
+        xdotool \
         gnupg2 \
         xvfb \
         pulseaudio \

@@ -21,19 +21,20 @@ pub fn process_image(
     upscale: bool,
     transparent_color: [u8; 3],
 ) -> Result<ImageFormat> {
-    let img = image::open(input).context("Failed to open input image")?;
+    let img =
+        image::open(input).with_context(|| format!("Failed to open input image: {:?}", input))?;
 
     // Case 1: No upscale, no compression (original BMP)
     if !upscale && !compress {
         img.save_with_format(output, ImageFormat::Bmp)
-            .context("Failed to save BMP image")?;
+            .with_context(|| format!("Failed to save BMP image: {:?}", output))?;
         return Ok(ImageFormat::Bmp);
     }
 
     // Case 2: No upscale, with compression (small WebP)
     if !upscale && compress {
         img.save_with_format(output, ImageFormat::WebP)
-            .context("Failed to save BMP image")?;
+            .with_context(|| format!("Failed to save WebP image: {:?}", output))?;
         return Ok(ImageFormat::WebP);
     }
 
@@ -59,7 +60,7 @@ pub fn process_image(
 
     upscaled_img
         .save_with_format(output, format)
-        .context("Failed to save image")?;
+        .with_context(|| format!("Failed to save upscaled image: {:?}", output))?;
     Ok(format)
 }
 

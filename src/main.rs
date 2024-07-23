@@ -17,7 +17,7 @@ mod game_extractor;
 mod img;
 mod network;
 
-use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner};
+use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner, MulleBil};
 use img::process_image;
 
 #[derive(Parser, Debug)]
@@ -42,43 +42,6 @@ struct Args {
 
 pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
     let dir_files = find_dir_files(input_dir)?;
-
-    let jonsson_mjolner_files: HashSet<String> = [
-        "anslagstavla.dir",
-        "block.dir",
-        "dorislapp.dir",
-        "glidflygare.dir",
-        "heden.dir",
-        "kassaskap.dir",
-        "monalisa.dir",
-        "paris.dir",
-        "setup.dir",
-        "souvenir.dir",
-        "tavla.dir",
-        "tidningsbutik.dir",
-        "wtavla.dir",
-        "berlin.dir",
-        "container.dir",
-        "drottningtavla.dir",
-        "gotland.dir",
-        "huvudmeny.dir",
-        "london.dir",
-        "nrspel.dir",
-        "rom.dir",
-        "sheild.dir",
-        "stockholm.dir",
-        "telefonbok.dir",
-        "wsafe.dir",
-    ]
-    .iter()
-    .map(|&s| s.to_lowercase())
-    .collect();
-
-    let jonsson_djupet_files: HashSet<String> = ["avi.dir", "game.dir", "mainmenu.dir", "qt.dir"]
-        .iter()
-        .map(|&s| s.to_lowercase())
-        .collect();
-
     let found_files: HashSet<String> = dir_files
         .iter()
         .filter_map(|path| path.file_name())
@@ -86,23 +49,42 @@ pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
         .map(|s| s.to_lowercase())
         .collect();
 
-    let game_a_match = jonsson_mjolner_files.intersection(&found_files).count();
-    let game_b_match = jonsson_djupet_files.intersection(&found_files).count();
+    let games: Vec<Box<dyn GameExtractor>> = vec![
+        Box::new(JonssonMjolner),
+        Box::new(JonssonDjupet),
+        Box::new(MulleBil),
+    ];
 
-    if game_a_match > game_b_match {
-        if game_a_match < jonsson_mjolner_files.len() {
-            println!("Warning: Only found {} out of {} expected files for Jönssonligan: Jakten på Mjölner. Proceeding anyway.", game_a_match, jonsson_mjolner_files.len());
+    let mut best_match: Option<(usize, Box<dyn GameExtractor>)> = None;
+
+    for game in games {
+        let expected_files = game.get_expected_files();
+        let match_count = expected_files.intersection(&found_files).count();
+
+        if match_count > 0 {
+            if let Some((best_count, _)) = best_match {
+                if match_count > best_count {
+                    best_match = Some((match_count, game));
+                }
+            } else {
+                best_match = Some((match_count, game));
+            }
         }
-        Ok(Box::new(JonssonMjolner))
-    } else if game_b_match > 0 {
-        if game_b_match < jonsson_djupet_files.len() {
+    }
+
+    if let Some((match_count, game)) = best_match {
+        let expected_count = game.get_expected_files().len();
+        if match_count < expected_count {
             println!(
-                "Warning: Only found {} out of {} expected files for Jönssonligan: Går på Djupet. Proceeding anyway.", game_b_match, jonsson_djupet_files.len()
+                "Warning: Only found {} out of {} expected files for {}. Proceeding anyway.",
+                match_count,
+                expected_count,
+                game.get_name()
             );
         }
-        Ok(Box::new(JonssonDjupet))
+        Ok(game)
     } else {
-        anyhow::bail!("Unable to detect game type. No matching .dir files found.")
+        bail!("Unable to detect game type. No matching .dir files found.")
     }
 }
 
@@ -114,34 +96,14 @@ fn find_dir_files(dir: &Path) -> Result<Vec<PathBuf>> {
             let path = entry.path();
             if path.is_dir() {
                 dir_files.extend(find_dir_files(&path)?);
-            } else if path
-                .extension()
-                .map_or(false, |ext| ext.eq_ignore_ascii_case("dir"))
-            {
+            } else if path.extension().map_or(false, |ext| {
+                ext.eq_ignore_ascii_case("dir") || ext.eq_ignore_ascii_case("dxr")
+            }) {
                 dir_files.push(path);
             }
         }
     }
     Ok(dir_files)
-}
-
-#[cfg(target_os = "windows")]
-fn run_extractor(temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
-    Command::new(temp_dir.join("dir_extractor.exe"))
-        .arg(dir_file)
-        .current_dir(temp_dir)
-        .output()
-        .context("Failed to run extractor on Windows")
-}
-
-#[cfg(not(target_os = "windows"))]
-fn run_extractor(temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
-    Command::new("wine")
-        .arg("dir_extractor.exe")
-        .arg(dir_file)
-        .current_dir(temp_dir)
-        .output()
-        .context("Failed to run extractor with Wine")
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -158,26 +120,26 @@ fn check_wine_installation() -> Result<()> {
     Ok(())
 }
 
-fn extract_files(temp_dir: &Path) -> Result<()> {
-    let dir_files = find_files(temp_dir, ".dir")
-        .context("Failed to find .dir files. Make sure the input directory is correct and contains .dir files.")?;
-    if dir_files.is_empty() {
-        bail!("No .dir files found in the input directory. Please check your input path.");
-    }
-    let total = dir_files.len();
+fn extract_files(temp_dir: &Path, game: &Box<dyn GameExtractor>) -> Result<()> {
+    let files = find_files(temp_dir, &[".dir", ".dxr"])
+        .context("Failed to find .dir or .dxr files. Make sure the input directory is correct and contains these files.")?;
 
-    for (i, dir) in dir_files.iter().enumerate() {
-        let file_name = dir.file_name().to_string_lossy().into_owned();
+    if files.is_empty() {
+        bail!("No .dir or .dxr files found in the input directory. Please check your input path.");
+    }
+
+    let total = files.len();
+    for (i, file) in files.iter().enumerate() {
+        let file_name = file.file_name().to_string_lossy().into_owned();
         println!(
             "Extracting assets from: {:?} ({}/{})",
             file_name,
             i + 1,
             total
         );
-        run_extractor(temp_dir, &file_name)
+        game.run_extractor(temp_dir, &file_name)
             .context(format!("Failed to extract assets from: {:?}", file_name))?;
     }
-
     Ok(())
 }
 
@@ -220,7 +182,7 @@ fn remove_duplicates(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn find_files(dir: &Path, extension: &str) -> Result<Vec<fs::DirEntry>> {
+fn find_files(dir: &Path, extensions: &[&str]) -> Result<Vec<fs::DirEntry>> {
     let mut files: Vec<fs::DirEntry> = fs::read_dir(dir)
         .context("Failed to read directory")?
         .filter_map(|res| res.ok())
@@ -228,7 +190,12 @@ fn find_files(dir: &Path, extension: &str) -> Result<Vec<fs::DirEntry>> {
             entry
                 .path()
                 .extension()
-                .map_or(false, |ext| ext == extension.trim_start_matches('.'))
+                .and_then(|ext| ext.to_str())
+                .map_or(false, |ext| {
+                    extensions.iter().any(|&valid_ext| {
+                        ext.eq_ignore_ascii_case(valid_ext.trim_start_matches('.'))
+                    })
+                })
         })
         .collect();
 
@@ -277,7 +244,6 @@ fn move_file_to_output(src_path: &Path, output_dir: &Path, extension: Option<&st
 
 fn main() -> Result<()> {
     let args = Args::parse();
-
     let input_dir = Path::new(&args.input_dir);
     let output_dir = Path::new(&args.output_dir);
     let extractor_tools_dir = Path::new("extractor_tools");
@@ -293,30 +259,15 @@ fn main() -> Result<()> {
         );
     }
 
-    let input_dir = fs::read_dir(&input_dir)
-        .context("Failed to read input directory")?
-        .filter_map(Result::ok)
-        .find(|entry| {
-            let path = entry.path();
-            path.is_dir()
-                && path
-                    .file_name()
-                    .map(|name| name.to_string_lossy().to_lowercase() == "data")
-                    .unwrap_or(false)
-        })
-        .map(|entry| entry.path())
-        .context("No data or Data directory found")?;
-
     #[cfg(not(target_os = "windows"))]
     check_wine_installation()?;
 
     let temp_dir = env::temp_dir().join(format!("cgex_{}", std::process::id()));
     fs::create_dir_all(&temp_dir).context("Failed to create temporary directory")?;
 
+    // Copy the entire input directory to temp
     game_extractor::copy_directory(&input_dir, &temp_dir)
         .context("Failed to copy input directory to temp")?;
-
-    game.prepare_temp_directory(&temp_dir)?;
 
     fs::copy(
         extractor_tools_dir.join("dir_extractor.exe"),
@@ -329,7 +280,10 @@ fn main() -> Result<()> {
     game_extractor::copy_directory(&xtras_src, &xtras_dst)
         .context("Failed to copy Xtras folder")?;
 
-    extract_files(&temp_dir).context("Failed to extract files")?;
+    // Prepare the temp directory based on the specific game requirements
+    game.prepare_temp_directory(&temp_dir)?;
+
+    extract_files(&temp_dir, &game).context("Failed to extract files")?;
 
     println!("Removing duplicates. This might take a while...");
     if let Err(e) = remove_duplicates(&temp_dir) {
@@ -360,47 +314,59 @@ fn main() -> Result<()> {
     );
 
     let bmp_files =
-        find_files(&temp_dir, ".bmp").context("Failed to find BMP files for processing")?;
+        find_files(&temp_dir, &[".bmp"]).context("Failed to find BMP files for processing")?;
     let total = bmp_files.len();
     let counter = AtomicUsize::new(1);
 
-    let processed_files: Vec<(PathBuf, ImageFormat)> = bmp_files
+    let processed_files: Vec<Result<(PathBuf, ImageFormat)>> = bmp_files
         .into_par_iter()
         .map(|entry| -> Result<(PathBuf, ImageFormat)> {
             let current = counter.fetch_add(1, Ordering::SeqCst);
-            println!(
-                "Processing: {:?} ({}/{})",
-                entry.file_name(),
-                current,
-                total
-            );
+            let file_n = entry.file_name();
+            let file_name = file_n.to_string_lossy();
+            println!("Processing: {:?} ({}/{})", file_name, current, total);
 
             let input_path = entry.path();
             let output_path = temp_dir.join(input_path.file_name().unwrap());
-            let format = process_image(
+            process_image(
                 &input_path,
                 &output_path,
                 !args.no_compression,
                 !args.no_upscale,
                 game.get_transparent_color(),
             )
-            .context(format!("Failed to process image: {:?}", input_path))?;
-            Ok((output_path, format))
+            .map(|format| (output_path, format))
+            .with_context(|| format!("Failed to process image: {:?}", input_path))
         })
-        .collect::<Result<Vec<_>>>()?;
+        .collect();
 
-    game.post_extraction_setup(&temp_dir, &processed_files)?;
+    // Handle successful and failed image processing
+    let (successful, failed): (Vec<_>, Vec<_>) =
+        processed_files.into_iter().partition(Result::is_ok);
+
+    let successful: Vec<(PathBuf, ImageFormat)> =
+        successful.into_iter().map(Result::unwrap).collect();
+
+    // Report failed images
+    for error in failed {
+        if let Err(e) = error {
+            eprintln!("Error processing image: {}", e);
+        }
+    }
+
+    game.post_extraction_setup(&temp_dir, &successful)?;
 
     println!("Moving files into final directory structure");
     fs::create_dir_all(output_dir).context("Failed to create output directory")?;
 
-    for (temp_path, format) in processed_files {
+    for (temp_path, format) in successful {
         let extension = format.extensions_str()[0];
         move_file_to_output(&temp_path, output_dir, Some(extension))
-            .context(format!("Failed to move processed file: {:?}", temp_path))?;
+            .with_context(|| format!("Failed to move processed file: {:?}", temp_path))?;
     }
 
-    let wav_files = find_files(&temp_dir, ".wav").context("Failed to find WAV files for moving")?;
+    let wav_files =
+        find_files(&temp_dir, &[".wav"]).context("Failed to find WAV files for moving")?;
     for file in wav_files {
         let src_path = file.path();
         move_file_to_output(&src_path, output_dir, None)
