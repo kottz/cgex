@@ -1,7 +1,11 @@
 use anyhow::{Context, Result};
 use image::ImageFormat;
-use std::fs;
+use std::collections::HashSet;
+use std::fs::{self};
 use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::thread;
+use std::time::Duration;
 
 pub trait GameExtractor: Send + Sync {
     fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()>;
@@ -13,19 +17,25 @@ pub trait GameExtractor: Send + Sync {
     ) -> Result<()>;
     fn get_broken_images(&self) -> Vec<&'static str>;
     fn get_name(&self) -> &'static str;
+    fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output>;
+    fn get_expected_files(&self) -> HashSet<String>;
 }
 
 pub struct JonssonMjolner;
 pub struct JonssonDjupet;
+pub struct MulleBil;
 
 impl GameExtractor for JonssonMjolner {
     fn get_name(&self) -> &'static str {
         "Jönssonligan: Jakten på Mjölner"
     }
 
-    fn prepare_temp_directory(&self, _temp_dir: &Path) -> Result<()> {
-        // No additional preparation needed for Jonssonligan: Jakten på Mjölner
-        Ok(())
+    fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
+        prepare_jonsson_temp_directory(temp_dir)
+    }
+
+    fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
+        run_extractor_common(temp_dir, dir_file)
     }
 
     fn get_transparent_color(&self) -> [u8; 3] {
@@ -71,6 +81,39 @@ impl GameExtractor for JonssonMjolner {
             "berlin--Animationer__vanheden0042-165.bmp",
         ]
     }
+
+    fn get_expected_files(&self) -> HashSet<String> {
+        [
+            "anslagstavla.dir",
+            "block.dir",
+            "dorislapp.dir",
+            "glidflygare.dir",
+            "heden.dir",
+            "kassaskap.dir",
+            "monalisa.dir",
+            "paris.dir",
+            "setup.dir",
+            "souvenir.dir",
+            "tavla.dir",
+            "tidningsbutik.dir",
+            "wtavla.dir",
+            "berlin.dir",
+            "container.dir",
+            "drottningtavla.dir",
+            "gotland.dir",
+            "huvudmeny.dir",
+            "london.dir",
+            "nrspel.dir",
+            "rom.dir",
+            "sheild.dir",
+            "stockholm.dir",
+            "telefonbok.dir",
+            "wsafe.dir",
+        ]
+        .iter()
+        .map(|&s| s.to_lowercase())
+        .collect()
+    }
 }
 
 impl GameExtractor for JonssonDjupet {
@@ -79,14 +122,11 @@ impl GameExtractor for JonssonDjupet {
     }
 
     fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
-        let xtras_src = temp_dir.join("xtras");
-        let xtras_dst = temp_dir.join("Xtras");
+        prepare_jonsson_temp_directory(temp_dir)
+    }
 
-        copy_directory(&xtras_src, &xtras_dst)
-            .context("Failed to copy xtras folder contents to Xtras")?;
-        fs::remove_dir_all(&xtras_src).context("Failed to remove xtras folder")?;
-
-        Ok(())
+    fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
+        run_extractor_common(temp_dir, dir_file)
     }
 
     fn get_transparent_color(&self) -> [u8; 3] {
@@ -105,6 +145,149 @@ impl GameExtractor for JonssonDjupet {
     fn get_broken_images(&self) -> Vec<&'static str> {
         vec!["Mainmenu--Internal__m_birdanim2_12-473.bmp"]
     }
+
+    fn get_expected_files(&self) -> HashSet<String> {
+        ["avi.dir", "game.dir", "mainmenu.dir", "qt.dir"]
+            .iter()
+            .map(|&s| s.to_lowercase())
+            .collect()
+    }
+}
+
+impl GameExtractor for MulleBil {
+    fn get_name(&self) -> &'static str {
+        "Mulle Meck bygger bilar"
+    }
+
+    fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
+        let xtras_src = temp_dir.join("xtras");
+        let xtras_dst = temp_dir.join("Xtras");
+
+        copy_directory(&xtras_src, &xtras_dst)
+            .context("Failed to copy xtras folder contents to Xtras")?;
+        fs::remove_dir_all(&xtras_src).context("Failed to remove xtras folder")?;
+
+        let movies_src = temp_dir.join("movies");
+
+        copy_directory(&movies_src, &temp_dir)
+            .context("Failed to copy movies folder contents to temp dir")?;
+
+        let data_src = temp_dir.join("data");
+        copy_directory(&data_src, &temp_dir)
+            .context("Failed to copy data folder contents to temp dir")?;
+
+        Ok(())
+    }
+
+    fn get_transparent_color(&self) -> [u8; 3] {
+        [0, 0, 0]
+    }
+
+    fn post_extraction_setup(
+        &self,
+        _temp_dir: &Path,
+        _processed_files: &[(PathBuf, ImageFormat)],
+    ) -> Result<()> {
+        // Any specific post-extraction setup for MulleBil
+        Ok(())
+    }
+
+    fn get_broken_images(&self) -> Vec<&'static str> {
+        vec![] // Add any known broken images for MulleBil
+    }
+
+    fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
+        #[cfg(target_os = "windows")]
+        {
+            run_extractor_common(temp_dir, dir_file)
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let temp_dir = temp_dir.to_path_buf();
+            let dir_file = dir_file.to_string();
+
+            let extractor_thread = thread::spawn(move || {
+                Command::new("wine")
+                    .arg("dir_extractor.exe")
+                    .arg(&dir_file)
+                    .current_dir(&temp_dir)
+                    .output()
+            });
+
+            let xdotool_thread = thread::spawn(|| loop {
+                let _ = Command::new("xdotool")
+                    .args(&[
+                        "search",
+                        "--name",
+                        "Director Player Error",
+                        "windowactivate",
+                        "--sync",
+                        "key",
+                        "Return",
+                    ])
+                    .output();
+                thread::sleep(Duration::from_millis(250));
+            });
+
+            let result = extractor_thread.join().unwrap()?;
+            xdotool_thread.join().unwrap();
+
+            Ok(result)
+        }
+    }
+
+    fn get_expected_files(&self) -> HashSet<String> {
+        [
+            "02.dxr",
+            "03.dxr",
+            "04.dxr",
+            "05.dxr",
+            "06.dxr",
+            "08.dxr",
+            "10.dxr",
+            "12.dxr",
+            "13.dxr",
+            "18.dxr",
+            "82.dxr",
+            "83.dxr",
+            "84.dxr",
+            "85.dxr",
+            "86.dxr",
+            "87.dxr",
+            "88.dxr",
+            "89.dxr",
+            "90.dxr",
+            "91.dxr",
+            "92.dxr",
+            "93.dxr",
+            "94.dxr",
+            "lbstart.dxr",
+            "unload.dxr",
+        ]
+        .iter()
+        .map(|&s| s.to_lowercase())
+        .collect()
+    }
+}
+
+fn run_extractor_common(temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
+    #[cfg(target_os = "windows")]
+    {
+        Command::new(temp_dir.join("dir_extractor.exe"))
+            .arg(dir_file)
+            .current_dir(temp_dir)
+            .output()
+            .context("Failed to run extractor on Windows")
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Command::new("wine")
+            .arg("dir_extractor.exe")
+            .arg(dir_file)
+            .current_dir(temp_dir)
+            .output()
+            .context("Failed to run extractor with Wine")
+    }
 }
 
 pub fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
@@ -120,6 +303,39 @@ pub fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
         } else {
             fs::copy(&src_path, &dst_path)?;
         }
+    }
+    Ok(())
+}
+
+fn prepare_jonsson_temp_directory(temp_dir: &Path) -> Result<()> {
+    // Handle Xtras folder
+    let xtras_src = temp_dir.join("xtras");
+    let xtras_dst = temp_dir.join("Xtras");
+    copy_directory(&xtras_src, &xtras_dst)
+        .context("Failed to copy xtras folder contents to Xtras")?;
+    fs::remove_dir_all(&xtras_src).context("Failed to remove xtras folder")?;
+
+    // Handle case-insensitive data directory
+    let data_dir = fs::read_dir(temp_dir)?
+        .filter_map(Result::ok)
+        .find(|entry| {
+            let path = entry.path();
+            path.is_dir()
+                && path
+                    .file_name()
+                    .map(|name| name.to_string_lossy().to_lowercase() == "data")
+                    .unwrap_or(false)
+        })
+        .map(|entry| entry.path());
+
+    if let Some(data_dir) = data_dir {
+        for entry in fs::read_dir(&data_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            let new_path = temp_dir.join(path.file_name().unwrap());
+            fs::rename(path, new_path)?;
+        }
+        fs::remove_dir(data_dir)?;
     }
     Ok(())
 }

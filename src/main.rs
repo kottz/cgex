@@ -17,7 +17,7 @@ mod game_extractor;
 mod img;
 mod network;
 
-use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner};
+use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner, MulleBil};
 use img::process_image;
 
 #[derive(Parser, Debug)]
@@ -42,43 +42,6 @@ struct Args {
 
 pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
     let dir_files = find_dir_files(input_dir)?;
-
-    let jonsson_mjolner_files: HashSet<String> = [
-        "anslagstavla.dir",
-        "block.dir",
-        "dorislapp.dir",
-        "glidflygare.dir",
-        "heden.dir",
-        "kassaskap.dir",
-        "monalisa.dir",
-        "paris.dir",
-        "setup.dir",
-        "souvenir.dir",
-        "tavla.dir",
-        "tidningsbutik.dir",
-        "wtavla.dir",
-        "berlin.dir",
-        "container.dir",
-        "drottningtavla.dir",
-        "gotland.dir",
-        "huvudmeny.dir",
-        "london.dir",
-        "nrspel.dir",
-        "rom.dir",
-        "sheild.dir",
-        "stockholm.dir",
-        "telefonbok.dir",
-        "wsafe.dir",
-    ]
-    .iter()
-    .map(|&s| s.to_lowercase())
-    .collect();
-
-    let jonsson_djupet_files: HashSet<String> = ["avi.dir", "game.dir", "mainmenu.dir", "qt.dir"]
-        .iter()
-        .map(|&s| s.to_lowercase())
-        .collect();
-
     let found_files: HashSet<String> = dir_files
         .iter()
         .filter_map(|path| path.file_name())
@@ -86,23 +49,42 @@ pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
         .map(|s| s.to_lowercase())
         .collect();
 
-    let game_a_match = jonsson_mjolner_files.intersection(&found_files).count();
-    let game_b_match = jonsson_djupet_files.intersection(&found_files).count();
+    let games: Vec<Box<dyn GameExtractor>> = vec![
+        Box::new(JonssonMjolner),
+        Box::new(JonssonDjupet),
+        Box::new(MulleBil),
+    ];
 
-    if game_a_match > game_b_match {
-        if game_a_match < jonsson_mjolner_files.len() {
-            println!("Warning: Only found {} out of {} expected files for Jönssonligan: Jakten på Mjölner. Proceeding anyway.", game_a_match, jonsson_mjolner_files.len());
+    let mut best_match: Option<(usize, Box<dyn GameExtractor>)> = None;
+
+    for game in games {
+        let expected_files = game.get_expected_files();
+        let match_count = expected_files.intersection(&found_files).count();
+
+        if match_count > 0 {
+            if let Some((best_count, _)) = best_match {
+                if match_count > best_count {
+                    best_match = Some((match_count, game));
+                }
+            } else {
+                best_match = Some((match_count, game));
+            }
         }
-        Ok(Box::new(JonssonMjolner))
-    } else if game_b_match > 0 {
-        if game_b_match < jonsson_djupet_files.len() {
+    }
+
+    if let Some((match_count, game)) = best_match {
+        let expected_count = game.get_expected_files().len();
+        if match_count < expected_count {
             println!(
-                "Warning: Only found {} out of {} expected files for Jönssonligan: Går på Djupet. Proceeding anyway.", game_b_match, jonsson_djupet_files.len()
+                "Warning: Only found {} out of {} expected files for {}. Proceeding anyway.",
+                match_count,
+                expected_count,
+                game.get_name()
             );
         }
-        Ok(Box::new(JonssonDjupet))
+        Ok(game)
     } else {
-        anyhow::bail!("Unable to detect game type. No matching .dir files found.")
+        bail!("Unable to detect game type. No matching .dir files found.")
     }
 }
 
@@ -114,10 +96,9 @@ fn find_dir_files(dir: &Path) -> Result<Vec<PathBuf>> {
             let path = entry.path();
             if path.is_dir() {
                 dir_files.extend(find_dir_files(&path)?);
-            } else if path
-                .extension()
-                .map_or(false, |ext| ext.eq_ignore_ascii_case("dir"))
-            {
+            } else if path.extension().map_or(false, |ext| {
+                ext.eq_ignore_ascii_case("dir") || ext.eq_ignore_ascii_case("dxr")
+            }) {
                 dir_files.push(path);
             }
         }
@@ -159,15 +140,16 @@ fn check_wine_installation() -> Result<()> {
 }
 
 fn extract_files(temp_dir: &Path) -> Result<()> {
-    let dir_files = find_files(temp_dir, ".dir")
-        .context("Failed to find .dir files. Make sure the input directory is correct and contains .dir files.")?;
-    if dir_files.is_empty() {
-        bail!("No .dir files found in the input directory. Please check your input path.");
-    }
-    let total = dir_files.len();
+    let files = find_files(temp_dir, &[".dir", ".dxr"])
+        .context("Failed to find .dir or .dxr files. Make sure the input directory is correct and contains these files.")?;
 
-    for (i, dir) in dir_files.iter().enumerate() {
-        let file_name = dir.file_name().to_string_lossy().into_owned();
+    if files.is_empty() {
+        bail!("No .dir or .dxr files found in the input directory. Please check your input path.");
+    }
+
+    let total = files.len();
+    for (i, file) in files.iter().enumerate() {
+        let file_name = file.file_name().to_string_lossy().into_owned();
         println!(
             "Extracting assets from: {:?} ({}/{})",
             file_name,
@@ -177,7 +159,6 @@ fn extract_files(temp_dir: &Path) -> Result<()> {
         run_extractor(temp_dir, &file_name)
             .context(format!("Failed to extract assets from: {:?}", file_name))?;
     }
-
     Ok(())
 }
 
@@ -220,7 +201,7 @@ fn remove_duplicates(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn find_files(dir: &Path, extension: &str) -> Result<Vec<fs::DirEntry>> {
+fn find_files(dir: &Path, extensions: &[&str]) -> Result<Vec<fs::DirEntry>> {
     let mut files: Vec<fs::DirEntry> = fs::read_dir(dir)
         .context("Failed to read directory")?
         .filter_map(|res| res.ok())
@@ -228,7 +209,12 @@ fn find_files(dir: &Path, extension: &str) -> Result<Vec<fs::DirEntry>> {
             entry
                 .path()
                 .extension()
-                .map_or(false, |ext| ext == extension.trim_start_matches('.'))
+                .and_then(|ext| ext.to_str())
+                .map_or(false, |ext| {
+                    extensions.iter().any(|&valid_ext| {
+                        ext.eq_ignore_ascii_case(valid_ext.trim_start_matches('.'))
+                    })
+                })
         })
         .collect();
 
@@ -277,7 +263,6 @@ fn move_file_to_output(src_path: &Path, output_dir: &Path, extension: Option<&st
 
 fn main() -> Result<()> {
     let args = Args::parse();
-
     let input_dir = Path::new(&args.input_dir);
     let output_dir = Path::new(&args.output_dir);
     let extractor_tools_dir = Path::new("extractor_tools");
@@ -293,30 +278,15 @@ fn main() -> Result<()> {
         );
     }
 
-    let input_dir = fs::read_dir(&input_dir)
-        .context("Failed to read input directory")?
-        .filter_map(Result::ok)
-        .find(|entry| {
-            let path = entry.path();
-            path.is_dir()
-                && path
-                    .file_name()
-                    .map(|name| name.to_string_lossy().to_lowercase() == "data")
-                    .unwrap_or(false)
-        })
-        .map(|entry| entry.path())
-        .context("No data or Data directory found")?;
-
     #[cfg(not(target_os = "windows"))]
     check_wine_installation()?;
 
     let temp_dir = env::temp_dir().join(format!("cgex_{}", std::process::id()));
     fs::create_dir_all(&temp_dir).context("Failed to create temporary directory")?;
 
+    // Copy the entire input directory to temp
     game_extractor::copy_directory(&input_dir, &temp_dir)
         .context("Failed to copy input directory to temp")?;
-
-    game.prepare_temp_directory(&temp_dir)?;
 
     fs::copy(
         extractor_tools_dir.join("dir_extractor.exe"),
@@ -328,6 +298,9 @@ fn main() -> Result<()> {
     let xtras_dst = temp_dir.join("Xtras");
     game_extractor::copy_directory(&xtras_src, &xtras_dst)
         .context("Failed to copy Xtras folder")?;
+
+    // Prepare the temp directory based on the specific game requirements
+    game.prepare_temp_directory(&temp_dir)?;
 
     extract_files(&temp_dir).context("Failed to extract files")?;
 
