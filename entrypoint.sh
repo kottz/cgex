@@ -14,7 +14,16 @@ export DISPLAY=:99
 # Xvfb needs some time to start or else we get weird silent errors
 sleep 5
 
-/app/target/release/cgex -i /input -o /output #--no-upscale --no-compression
+# Build the command with optional flags
+CMD="/app/target/release/cgex -i /input -o /output"
+if [ "$NO_UPSCALE" = "true" ]; then
+    CMD="$CMD --no-upscale"
+fi
+if [ "$NO_COMPRESSION" = "true" ]; then
+    CMD="$CMD --no-compression"
+fi
+
+eval $CMD
 
 if [ ! -z "$HOST_UID" ] && [ ! -z "$HOST_GID" ]; then
     echo "Changing ownership of output files to $HOST_UID:$HOST_GID"

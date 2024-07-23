@@ -43,6 +43,18 @@ docker run --rm \
   cgex
 ```
 
+If you want to skip the compression or upscaling step when running cgex with the docker container you can add these environment variables.
+```bash
+docker run --rm \
+  -v ./disc_contents:/input \
+  -v ./output:/output \
+  -e HOST_UID=$(id -u) \
+  -e HOST_GID=$(id -g) \
+  -e NO_UPSCALE=true \
+  -e NO_COMPRESSION=true \
+  cgex
+```
+
 Extracted assets will be placed in the `output` folder, organized by type and game area. Extraction process may take a long time depending on your system.
 
 ### Options
