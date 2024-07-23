@@ -255,10 +255,7 @@ impl GameExtractor for MulleBil {
             // Signal the xdotool thread to stop
             running.store(false, Ordering::SeqCst);
 
-            // Wait a bit for the xdotool thread to finish its last iteration
             thread::sleep(Duration::from_millis(500));
-
-            // Now we can safely join the xdotool thread
             if let Err(e) = xdotool_thread.join() {
                 eprintln!("Error joining xdotool thread: {:?}", e);
             }
