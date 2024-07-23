@@ -190,7 +190,7 @@ impl GameExtractor for MulleBil {
     }
 
     fn get_transparent_color(&self) -> [u8; 3] {
-        [0, 0, 0]
+        [255, 255, 255]
     }
 
     fn post_extraction_setup(
