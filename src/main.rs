@@ -17,7 +17,7 @@ mod game_extractor;
 mod img;
 mod network;
 
-use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner, MulleBil};
+use game_extractor::{GameExtractor, JonssonDjupet, JonssonMjolner, MulleBat, MulleBil};
 use img::process_image;
 
 #[derive(Parser, Debug)]
@@ -53,6 +53,7 @@ pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
         Box::new(JonssonMjolner),
         Box::new(JonssonDjupet),
         Box::new(MulleBil),
+        Box::new(MulleBat),
     ];
 
     let mut best_match: Option<(usize, Box<dyn GameExtractor>)> = None;

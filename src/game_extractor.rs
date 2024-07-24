@@ -26,6 +26,7 @@ pub trait GameExtractor: Send + Sync {
 pub struct JonssonMjolner;
 pub struct JonssonDjupet;
 pub struct MulleBil;
+pub struct MulleBat;
 
 impl GameExtractor for JonssonMjolner {
     fn get_name(&self) -> &'static str {
@@ -166,7 +167,7 @@ impl GameExtractor for JonssonDjupet {
 
 impl GameExtractor for MulleBil {
     fn get_name(&self) -> &'static str {
-        "Mulle Meck bygger bilar"
+        "Bygg bilar med Mulle Meck"
     }
 
     fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
@@ -366,4 +367,121 @@ fn prepare_jonsson_temp_directory(temp_dir: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+impl GameExtractor for MulleBat {
+    fn get_name(&self) -> &'static str {
+        "Bygg båtar med Mulle Meck"
+    }
+
+    fn prepare_temp_directory(&self, temp_dir: &Path) -> Result<()> {
+        // Copy Movies folder
+        let movies_src = temp_dir.join("Movies");
+        copy_directory(&movies_src, &temp_dir)
+            .context("Failed to copy Movies folder contents to temp dir")?;
+
+        // Copy Data folder
+        let data_src = temp_dir.join("Data");
+        copy_directory(&data_src, &temp_dir)
+            .context("Failed to copy Data folder contents to temp dir")?;
+
+        //remove LBprofil.dxr
+        //extraction of this seems bugged in docker
+        //and it doesn't contain any useful images anyway.
+        let lbstart_path = temp_dir.join("LBprofil.dxr");
+        fs::remove_file(&lbstart_path).context("Failed to remove LBprofil.dxr")?;
+
+        Ok(())
+    }
+
+    fn get_transparent_color(&self) -> [u8; 3] {
+        [255, 255, 255]
+    }
+
+    fn post_extraction_setup(
+        &self,
+        _temp_dir: &Path,
+        _processed_files: &[(PathBuf, ImageFormat)],
+    ) -> Result<()> {
+        Ok(())
+    }
+
+    fn get_broken_images(&self) -> Vec<&'static str> {
+        vec!["01--00__Dummy-1.bmp", "08--Internal__Dummy-8.bmp"]
+    }
+
+    fn run_extractor(&self, temp_dir: &Path, dir_file: &str) -> Result<std::process::Output> {
+        #[cfg(target_os = "windows")]
+        {
+            run_extractor_common(temp_dir, dir_file)
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            let temp_dir = temp_dir.to_path_buf();
+            let dir_file = dir_file.to_string();
+
+            let running = Arc::new(AtomicBool::new(true));
+            let running_clone = running.clone();
+
+            let extractor_thread = thread::spawn(move || {
+                Command::new("wine")
+                    .arg("dir_extractor.exe")
+                    .arg(&dir_file)
+                    .current_dir(&temp_dir)
+                    .output()
+            });
+
+            let xdotool_thread = thread::spawn(move || {
+                while running_clone.load(Ordering::SeqCst) {
+                    let _ = Command::new("xdotool").args(&["key", "Return"]).output();
+                    thread::sleep(Duration::from_millis(250));
+                }
+            });
+
+            let result = extractor_thread.join().unwrap()?;
+
+            running.store(false, Ordering::SeqCst);
+            thread::sleep(Duration::from_millis(500));
+            if let Err(e) = xdotool_thread.join() {
+                eprintln!("Error joining xdotool thread: {:?}", e);
+            }
+
+            Ok(result)
+        }
+    }
+
+    fn get_expected_files(&self) -> HashSet<String> {
+        [
+            "01.dxr",
+            "02.dxr",
+            "03.dxr",
+            "04.dxr",
+            "05.dxr",
+            "06.dxr",
+            "08.dxr",
+            "10.dxr",
+            "11.dxr",
+            "13.dxr",
+            "14.dxr",
+            "15.dxr",
+            "70.dxr",
+            "71.dxr",
+            "76.dxr",
+            "77.dxr",
+            "78.dxr",
+            "79.dxr",
+            "80.dxr",
+            "81.dxr",
+            "83.dxr",
+            "84.dxr",
+            "85.dxr",
+            "86.dxr",
+            "87.dxr",
+            "88.dxr",
+            "lbstart.dxr",
+        ]
+        .iter()
+        .map(|&s| s.to_lowercase())
+        .collect()
+    }
 }
