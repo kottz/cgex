@@ -10,6 +10,7 @@ use anyhow::{Context, Result};
 use bytevec::ByteDecodable;
 use image::imageops::{resize, FilterType};
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, Rgba, RgbaImage};
+use std::collections::VecDeque;
 use std::path::Path;
 
 const IMAGENET_PARAMS: &'static [u8] = include_bytes!("imagenet.rsr");
@@ -161,4 +162,39 @@ fn ai_upscale(input_image: DynamicImage, factor: usize) -> DynamicImage {
             .expect("Failed to create output image");
 
     DynamicImage::ImageRgba8(output_image)
+}
+
+pub fn bucket_fill(img: &mut DynamicImage, start_x: u32, start_y: u32, fill_color: Rgba<u8>) {
+    let (width, height) = img.dimensions();
+    let start_color = img.get_pixel(start_x, start_y);
+
+    // If the start color is the same as the fill color, no need to do anything
+    if start_color == fill_color {
+        return;
+    }
+
+    let mut queue = VecDeque::new();
+    queue.push_back((start_x, start_y));
+
+    while let Some((x, y)) = queue.pop_front() {
+        if img.get_pixel(x, y) != start_color {
+            continue;
+        }
+
+        img.put_pixel(x, y, fill_color);
+
+        // Check and add adjacent pixels
+        if x > 0 {
+            queue.push_back((x - 1, y));
+        }
+        if x < width - 1 {
+            queue.push_back((x + 1, y));
+        }
+        if y > 0 {
+            queue.push_back((x, y - 1));
+        }
+        if y < height - 1 {
+            queue.push_back((x, y + 1));
+        }
+    }
 }
