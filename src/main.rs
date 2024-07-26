@@ -374,6 +374,13 @@ fn main() -> Result<()> {
             .context(format!("Failed to move WAV file: {:?}", src_path))?;
     }
 
+    let txt_files =
+        find_files(&temp_dir, &[".txt"]).context("Failed to find WAV files for moving")?;
+    for file in txt_files {
+        let src_path = file.path();
+        move_file_to_output(&src_path, output_dir, None)
+            .context(format!("Failed to move txt file: {:?}", src_path))?;
+    }
     println!("Cleaning up temporary directory");
     fs::remove_dir_all(&temp_dir).context("Failed to remove temporary directory")?;
 
