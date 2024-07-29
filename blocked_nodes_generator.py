@@ -5,32 +5,18 @@ import argparse
 
 
 def find_txt_files(root_dir):
-    txt_files = []
+    txt_files = {}
     for dirpath, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
             if filename.startswith('P ') and filename.endswith('.txt'):
-                txt_files.append(os.path.join(dirpath, filename))
+                name = filename[2:].split('.')[0]  # Remove 'P ' and '.txt'
+                txt_files[name] = os.path.join(dirpath, filename)
     return txt_files
-
-
-def parse_filename(filename):
-    base = os.path.basename(filename)
-    name = base.split('-')[0][2:]  # Remove 'P ' and everything after '-'
-    return name
 
 
 def load_level_data(filename):
     with open(filename, 'r') as f:
         return json.load(f)
-
-
-def find_level_and_scene(level_data, name):
-    for level in level_data['levels']:
-        for scene in level['scenes']:
-            if f"B {name}" in scene['background']:
-                print("found", level['id'], scene['id'])
-                return level['id'], scene['id']
-    return None, None
 
 
 def load_blocked_nodes(filename):
@@ -39,23 +25,30 @@ def load_blocked_nodes(filename):
         return json.loads(content) if content else []
 
 
+def match_background_to_txt(background, txt_files):
+    bg_name = background.split('.')[0]
+    if '-' in bg_name:
+        bg_name = bg_name.split('-')[0]
+    for txt_name in txt_files:
+        if txt_name.startswith(bg_name) and (len(txt_name) == len(bg_name) or txt_name[len(bg_name)] == '-'):
+            return txt_name
+    return None
+
+
 def generate_blocked_nodes_json(root_dir, level_data_file, minify=False):
     level_data = load_level_data(level_data_file)
     txt_files = find_txt_files(root_dir)
-
     blocked_node_data = defaultdict(lambda: defaultdict(list))
 
-    for file in txt_files:
-        name = parse_filename(file)
-        level_id, scene_id = find_level_and_scene(level_data, name)
-
-        if level_id is not None and scene_id is not None:
-            blocked_nodes = load_blocked_nodes(file)
-            blocked_node_data[level_id][scene_id] = blocked_nodes
+    for level in level_data['levels']:
+        for scene in level['scenes']:
+            background = scene['background'].split()[-1]
+            matched_txt = match_background_to_txt(background, txt_files)
+            if matched_txt:
+                blocked_nodes = load_blocked_nodes(txt_files[matched_txt])
+                blocked_node_data[level['id']][scene['id']] = blocked_nodes
 
     result = {"blocked_node_data": []}
-
-    # Sort the data
     for level_id in sorted(blocked_node_data.keys()):
         for scene_id in sorted(blocked_node_data[level_id].keys()):
             level_data = {
@@ -78,7 +71,6 @@ if __name__ == "__main__":
     parser.add_argument('level_data_file', help='Path to level_data.json')
     parser.add_argument('--min', action='store_true',
                         help='Output minified JSON')
-
     args = parser.parse_args()
 
     generate_blocked_nodes_json(args.root_dir, args.level_data_file, args.min)
