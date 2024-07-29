@@ -67,6 +67,22 @@ impl GameExtractor for JonssonMjolner {
                         .context(format!("Failed to copy file: {:?}", temp_path))?;
                 }
             }
+            let extension = format.extensions_str()[0];
+            if temp_path
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("Huvudmeny--Gubbar__vanheden700")
+            {
+                let new_file_name = format!("Huvudmeny--Gubbar__vanheden707.{}", extension);
+                let new_path = temp_dir.join(new_file_name);
+
+                if temp_path.exists() {
+                    fs::copy(&temp_path, &new_path)
+                        .context(format!("Failed to copy file: {:?}", temp_path))?;
+                }
+            }
         }
         Ok(())
     }
