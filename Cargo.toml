@@ -8,7 +8,7 @@ anyhow = "1.0.86"
 data-encoding = "2.6.0"
 rayon = "1.10.0"
 ring = "0.17.8"
-imagequant = "2.12.5"
+imagequant = "3.1.0"
 image = "0.25.1"
 bytevec = "0.2.0"
 alumina = { version = "0.1.1" , features = ["images"]}
