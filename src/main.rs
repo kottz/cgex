@@ -31,9 +31,9 @@ struct Args {
     #[arg(short, long, default_value = "output")]
     output_dir: String,
 
-    /// Disable WebP compression (default: compression enabled)
+    /// Enable WebP compression (default: output png)
     #[arg(long)]
-    no_compression: bool,
+    compression: bool,
 
     /// Disable upscaling (default: upscaling enabled)
     #[arg(long)]
@@ -307,10 +307,10 @@ fn main() -> Result<()> {
         } else {
             " with AI-upscaling"
         },
-        if args.no_compression {
-            ""
-        } else {
+        if args.compression {
             " and compression"
+        } else {
+            ""
         }
     );
 
@@ -332,7 +332,7 @@ fn main() -> Result<()> {
             process_image(
                 &input_path,
                 &output_path,
-                !args.no_compression,
+                args.compression,
                 !args.no_upscale,
                 game.get_transparent_color(),
             )

@@ -25,8 +25,8 @@ else
     if [ "$NO_UPSCALE" = "true" ]; then
         CMD="$CMD --no-upscale"
     fi
-    if [ "$NO_COMPRESSION" = "true" ]; then
-        CMD="$CMD --no-compression"
+    if [ "$COMPRESSION" = "true" ]; then
+        CMD="$CMD --compression"
     fi
     eval $CMD
 

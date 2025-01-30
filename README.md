@@ -41,7 +41,7 @@ docker run --rm \
   kottz/cgex:latest
 ```
 
-If you want to skip the compression or upscaling step when running cgex with the docker container you can add these environment variables.
+If you want to add compression or skip upscaling step when running cgex with the docker container you can add these environment variables.
 ```bash
 docker run --rm \
   -v ./disc_contents:/input \
@@ -49,7 +49,7 @@ docker run --rm \
   -e HOST_UID=$(id -u) \
   -e HOST_GID=$(id -g) \
   -e NO_UPSCALE=true \
-  -e NO_COMPRESSION=true \
+  -e COMPRESSION=true \
   kottz/cgex:latest
 ```
 
@@ -57,9 +57,8 @@ Extracted assets will be placed in the `output` folder, organized by type and ga
 
 ### Options
 
-cgex will output upscaled and compressed WebP assets by default. Both of these steps can be skipped with the `--no-upscale` and `--no-compression` arguments.
-`--no-compression` will skip the WebP compression step and output lossless png files. `--no-upscale` will skip the AI upscaling.
-If you use both options at the same time cgex will output the original untouched 640x480 image assets in bmp format.
+cgex will output upscaled and uncompressed PNG assets by default. Skip upscaling with the `--no-upscale` and add WebP compression with `--compression`.
+If you don't upscale and don't compress cgex will output the original untouched 640x480 image assets in bmp format.
 
 ## Legal
 
