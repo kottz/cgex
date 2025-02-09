@@ -41,7 +41,7 @@ docker run --rm \
   kottz/cgex:latest
 ```
 
-If you want to add compression or skip upscaling step when running cgex with the docker container you can add these environment variables.
+If you want to add compression, skip upscaling or don't want to add alpha channel to images when running cgex with the docker container you can add these environment variables.
 ```bash
 docker run --rm \
   -v ./disc_contents:/input \
@@ -50,6 +50,7 @@ docker run --rm \
   -e HOST_GID=$(id -g) \
   -e NO_UPSCALE=true \
   -e COMPRESSION=true \
+  -e NO_TRANSPARENT_BACKGROUND=true \
   kottz/cgex:latest
 ```
 

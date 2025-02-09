@@ -38,6 +38,10 @@ struct Args {
     /// Disable upscaling (default: upscaling enabled)
     #[arg(long)]
     no_upscale: bool,
+
+    /// Do not handle transparent background; leave background colors intact
+    #[arg(long)]
+    no_transparent_background: bool,
 }
 
 pub fn detect_game(input_dir: &Path) -> Result<Box<dyn GameExtractor>> {
@@ -335,6 +339,7 @@ fn main() -> Result<()> {
                 args.compression,
                 !args.no_upscale,
                 game.get_transparent_color(),
+                !args.no_transparent_background,
             )
             .map(|format| (output_path, format))
             .with_context(|| format!("Failed to process image: {:?}", input_path))

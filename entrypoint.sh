@@ -28,6 +28,9 @@ else
     if [ "$COMPRESSION" = "true" ]; then
         CMD="$CMD --compression"
     fi
+    if [ "$NO_TRANSPARENT_BACKGROUND" = "true" ]; then
+        CMD="$CMD --no-transparent-background"
+    fi
     eval $CMD
 
     if [ ! -z "$HOST_UID" ] && [ ! -z "$HOST_GID" ]; then

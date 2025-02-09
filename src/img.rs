@@ -20,6 +20,7 @@ pub fn process_image(
     compress: bool,
     upscale: bool,
     transparent_color: [u8; 3],
+    handle_transparency: bool,
 ) -> Result<ImageFormat> {
     let img =
         image::open(input).with_context(|| format!("Failed to open input image: {:?}", input))?;
@@ -39,29 +40,42 @@ pub fn process_image(
     }
 
     // For cases 3 and 4, we need to upscale
-    let factor = 3; // Hardcode factor 3
-    let img2 = img.clone();
-    let b_w_img = background_and_foreground(img, transparent_color);
-    let b_w_img_upscaled = resize(
-        &b_w_img,
-        b_w_img.width() * factor,
-        b_w_img.height() * factor,
-        FilterType::Triangle,
-    );
-    let transparent_img = background_to_transparent(img2, transparent_color);
-    let ai_img = ai_upscale(transparent_img, factor as usize);
-    let upscaled_img = combine_background(ai_img, DynamicImage::ImageRgba8(b_w_img_upscaled));
+    let factor = 3; // Hardcoded factor
+    if handle_transparency {
+        // Existing processing that detects the transparent background:
+        let img2 = img.clone();
+        let b_w_img = background_and_foreground(img, transparent_color);
+        let b_w_img_upscaled = resize(
+            &b_w_img,
+            b_w_img.width() * factor,
+            b_w_img.height() * factor,
+            FilterType::Triangle,
+        );
+        let transparent_img = background_to_transparent(img2, transparent_color);
+        let ai_img = ai_upscale(transparent_img, factor as usize);
+        let upscaled_img = combine_background(ai_img, DynamicImage::ImageRgba8(b_w_img_upscaled));
 
-    let format: ImageFormat = if compress {
-        ImageFormat::WebP
+        let format = if compress {
+            ImageFormat::WebP
+        } else {
+            ImageFormat::Png
+        };
+        upscaled_img
+            .save_with_format(output, format)
+            .with_context(|| format!("Failed to save upscaled image: {:?}", output))?;
+        Ok(format)
     } else {
-        ImageFormat::Png
-    };
-
-    upscaled_img
-        .save_with_format(output, format)
-        .with_context(|| format!("Failed to save upscaled image: {:?}", output))?;
-    Ok(format)
+        let upscaled_img = ai_upscale(img, factor as usize);
+        let format = if compress {
+            ImageFormat::WebP
+        } else {
+            ImageFormat::Png
+        };
+        upscaled_img
+            .save_with_format(output, format)
+            .with_context(|| format!("Failed to save upscaled image: {:?}", output))?;
+        Ok(format)
+    }
 }
 
 fn background_and_foreground(img: DynamicImage, transparent_color: [u8; 3]) -> DynamicImage {
